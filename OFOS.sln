@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OFOS", "OFOS\OFOS.csproj", "{F9753E2A-CB3B-4DAA-8A3C-3558E8A19CA9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OFOS", "OFOS\OFOS.csproj", "{F9753E2A-CB3B-4DAA-8A3C-3558E8A19CA9}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9DAA7138-675A-4CEA-8B78-9FF11A534C9E}"
 EndProject
@@ -12,15 +12,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		nginx.conf = nginx.conf
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantService", "RestaurantService\RestaurantService.csproj", "{36D41699-E7BA-4E44-8B7A-6CA705FA6A4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestaurantService", "RestaurantService\RestaurantService.csproj", "{36D41699-E7BA-4E44-8B7A-6CA705FA6A4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService", "UserService\UserService.csproj", "{039D95EB-3143-48DA-956D-CCF3C3A5ACBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserService", "UserService\UserService.csproj", "{039D95EB-3143-48DA-956D-CCF3C3A5ACBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService", "OrderService\OrderService.csproj", "{F8D53587-1AD1-4CB7-A855-21988B940C2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrderService", "OrderService\OrderService.csproj", "{F8D53587-1AD1-4CB7-A855-21988B940C2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentService", "PaymentService\PaymentService.csproj", "{F360FE8D-B9F0-446B-8E6D-4BAE1F9413F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentService", "PaymentService\PaymentService.csproj", "{F360FE8D-B9F0-446B-8E6D-4BAE1F9413F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "NotificationService\NotificationService.csproj", "{7EFE47B1-B0D1-4FE5-8BDA-0D3E4A4ED411}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NotificationService", "NotificationService\NotificationService.csproj", "{7EFE47B1-B0D1-4FE5-8BDA-0D3E4A4ED411}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", "{78CDD102-468C-4AE1-8745-0B13E51C7C20}"
+	ProjectSection(SolutionItems) = preProject
+		api-gateway-deployment.yml = api-gateway-deployment.yml
+		nginx-config.yml = nginx-config.yml
+		notification-service-deployment.yml = notification-service-deployment.yml
+		order-service-deployment.yml = order-service-deployment.yml
+		payment-service-deployment.yml = payment-service-deployment.yml
+		restaurant-service-deployment.yml = restaurant-service-deployment.yml
+		user-service-deployment.yml = user-service-deployment.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +70,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{78CDD102-468C-4AE1-8745-0B13E51C7C20} = {461C7603-D834-43F8-A40F-EB3DE6F72947}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4837CE1-8FDD-40D6-8B2D-7223271DDD3C}

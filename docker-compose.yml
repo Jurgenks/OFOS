@@ -15,6 +15,16 @@ services:
       - order-service
       - notification-service
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmquser
+      RABBITMQ_DEFAULT_PASS: rabbitmqpassword
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   restaurant-service:
     build:
       context: ./RestaurantService
@@ -79,9 +89,7 @@ services:
       MYSQL_USER: yourusername
       MYSQL_PASSWORD: yourpassword
     ports:
-      - "3306:3306"
-    volumes:
-      - ./mysql-data/restaurant:/var/lib/mysql
+      - "3306:3306"    
 
   user-db:
     image: mysql:latest
@@ -92,9 +100,7 @@ services:
       MYSQL_USER: yourusername
       MYSQL_PASSWORD: yourpassword
     ports:
-      - "3307:3306"
-    volumes:
-      - ./mysql-data/user:/var/lib/mysql
+      - "3307:3306"    
 
   payment-db:
     image: mysql:latest
@@ -105,9 +111,7 @@ services:
       MYSQL_USER: yourusername
       MYSQL_PASSWORD: yourpassword
     ports:
-      - "3308:3306"
-    volumes:
-      - ./mysql-data/payment:/var/lib/mysql
+      - "3308:3306"  
 
   order-db:
     image: mysql:latest
@@ -118,9 +122,7 @@ services:
       MYSQL_USER: yourusername
       MYSQL_PASSWORD: yourpassword
     ports:
-      - "3309:3306"
-    volumes:
-      - ./mysql-data/order:/var/lib/mysql
+      - "3309:3306"   
 
   notification-db:
     image: mysql:latest
@@ -132,5 +134,3 @@ services:
       MYSQL_PASSWORD: yourpassword
     ports:
       - "3310:3306"
-    volumes:
-      - ./mysql-data/notification:/var/lib/mysql

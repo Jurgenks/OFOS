@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configmap
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    http {      
+
+      server {
+        listen 80;
+        server_name api-gateway;
+
+        location /restaurant {
+          proxy_pass http://restaurant-service;
+        }
+
+        location /user {
+          proxy_pass http://user-service;
+        }
+
+        location /payment {
+          proxy_pass http://payment-service;
+        }
+
+        location /order {
+          proxy_pass http://order-service;
+        }
+
+        location /notification {
+          proxy_pass http://notification-service;
+        }
+      }
+    }
