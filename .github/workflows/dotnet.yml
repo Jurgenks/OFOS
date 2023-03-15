@@ -1,0 +1,38 @@
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build-and-test-userservice:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
+    - name: Restore dependencies
+      run: dotnet restore UserService/UserService.csproj
+    - name: Build
+      run: dotnet build UserService/UserService.csproj --no-restore
+    - name: Test
+      run: dotnet test UserService/UserService.Tests/UserService.Test.csproj --no-build --verbosity normal
+
+  build-and-test-orderservice:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
+    - name: Restore dependencies
+      run: dotnet restore OrderService/OrderService.csproj
+    - name: Build
+      run: dotnet build OrderService/OrderService.csproj --no-restore
+    - name: Test
+      run: dotnet test OrderService/OrderService.Tests/OrderService.Test.csproj --no-build --verbosity normal
