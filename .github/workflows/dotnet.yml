@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  build-and-test-orderservice:
+  build-and-test-ofos:
     runs-on: ubuntu-latest
 
     steps:
