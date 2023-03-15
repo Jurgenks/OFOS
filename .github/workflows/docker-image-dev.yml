@@ -1,0 +1,60 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push UserService Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./UserService/Dockerfile
+          push: true
+          tags: jurgenks/user-service:latest
+
+      - name: Build and push RestaurantService Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./RestaurantService/Dockerfile
+          push: true
+          tags: jurgenks/restaurant-service:latest
+
+      - name: Build and push NotificationService Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./NotificationService/Dockerfile
+          push: true
+          tags: jurgenks/notification-service:latest
+
+      - name: Build and push OrderService Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./OrderService/Dockerfile
+          push: true
+          tags: jurgenks/order-service:latest
+
+      - name: Build and push PaymentService Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./PaymentService/Dockerfile
+          push: true
+          tags: jurgenks/payment-service:latest
