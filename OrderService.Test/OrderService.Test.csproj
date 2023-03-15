@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OrderService.Logic\OrderService.Core.csproj" />
+    <ProjectReference Include="..\OrderService\OrderService.csproj" />
   </ItemGroup>
 
 </Project>
