@@ -1,0 +1,31 @@
+name: Test NGINX API Gateway with Docker Compose
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker images
+        run: docker-compose build
+
+      - name: Start Docker Compose environment
+        run: docker-compose up -d
+
+      - name: Run tests
+        run: |
+          # Wait for all containers to start up
+          sleep 5
+
+          # Run tests against API gateway
+          docker-compose run --rm tests
+
+      - name: Stop Docker Compose environment
+        run: docker-compose down
