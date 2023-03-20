@@ -1,0 +1,46 @@
+name: API Gateway Tests
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Start environment
+      run: docker-compose up -d
+
+    - name: Wait for environment
+      run: docker-compose ps && sleep 10
+
+    - name: Install curl
+      run: sudo apt-get install curl
+
+    - name: Run tests
+      run: |
+        # Make a request to the API gateway
+        curl -I http://localhost/
+
+        # Make a request to UserService
+        curl -I http://localhost/user/test
+
+        # Make a request to RestaurantService
+        curl -I http://localhost/restaurant/test
+        
+        # Make a request to PaymentService
+        curl -I http://localhost/payment/test
+        
+        # Make a request to OrderService
+        curl -I http://localhost/order/test
+        
+        # Make a request to NotificationService
+        curl -I http://localhost/notification/test
+
+    - name: Stop environment
+      run: docker-compose down
