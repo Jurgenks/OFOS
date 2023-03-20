@@ -27,8 +27,8 @@ services:
 
   restaurant-service:
     build:
-      context: ./RestaurantService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: RestaurantService/Dockerfile
     ports:
       - "8000:80"
     depends_on:
@@ -38,8 +38,8 @@ services:
 
   user-service:
     build:
-      context: ./UserService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: UserService/Dockerfile
     ports:
       - "8001:80"
     depends_on:
@@ -49,8 +49,8 @@ services:
 
   payment-service:
     build:
-      context: ./PaymentService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: PaymentService/Dockerfile
     ports:
       - "8002:80"
     depends_on:
@@ -60,8 +60,8 @@ services:
 
   order-service:
     build:
-      context: ./OrderService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: OrderService/Dockerfile
     ports:
       - "8003:80"
     depends_on:
@@ -71,8 +71,8 @@ services:
 
   notification-service:
     build:
-      context: ./NotificationService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: NotificationService/Dockerfile
     ports:
       - "8004:80"
     depends_on:
