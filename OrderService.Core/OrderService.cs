@@ -62,6 +62,19 @@ namespace OrderService.Core
 
             return order;
         }
+
+        public async Task DeleteOrderAsync(Guid orderId)
+        {
+            var order = await _orderRepository.GetOrderAsync(orderId);
+
+            if (order == null)
+            {
+                throw new ArgumentException($"Order with ID {orderId} not found.");
+            }
+
+            await _orderRepository.DeleteOrderAsync(order);
+        }
+
     }
 
 

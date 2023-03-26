@@ -12,13 +12,20 @@ namespace OrderService.Test
         private IOrderRepository _orderRepository;
 
         [TestInitialize]
-        public void TestInitialize()
+        public void Setup()
         {
             var options = new DbContextOptionsBuilder<OrderDbContext>()
                 .UseInMemoryDatabase("testDatabase")
                 .Options;
             _dbContext = new OrderDbContext(options);
             _orderRepository = new OrderRepository(_dbContext);
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _dbContext.Database.EnsureDeleted();
+            _dbContext.Dispose();
         }
 
         [TestMethod]

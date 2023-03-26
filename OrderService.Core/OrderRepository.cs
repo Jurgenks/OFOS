@@ -61,6 +61,13 @@ namespace OrderService.Core
             _dbContext.Orders.Update(order);
             await _dbContext.SaveChangesAsync();
         }
+
+        /// Deletes the order from the database
+        public async Task DeleteOrderAsync(Order order)
+        {
+            _dbContext.Orders.Remove(order);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 
 }

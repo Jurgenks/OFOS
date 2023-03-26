@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OFOS.Domain.Models;
 
 namespace UserService.Core
 {
-    internal interface IUserService
+    public interface IUserService
     {
+        Task CreateUser(User user);
+        Task<User?> GetUser(Guid id);
+        Task UpdateUser(User user);
+        Task DeleteUser(Guid id);
+        Task<User?> GetUserByEmail(string email);
+        Task<string?> Authenticate(string email, string password);
     }
 }

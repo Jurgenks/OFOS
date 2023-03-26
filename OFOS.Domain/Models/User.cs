@@ -1,4 +1,6 @@
-﻿namespace OFOS.Domain.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace OFOS.Domain.Models
 {
     public class User
     {
@@ -13,7 +15,7 @@
         public string PostalCode { get; set; }
         public string Country { get; set; }
         public string? Password { get; set; }
-
+        [NotMapped]
         public List<Guid> OrderHistory { get; set; }
 
         public string? AuthenticationToken { get; set; }
@@ -32,7 +34,6 @@
             PostalCode = postalCode;
             Country = country;
             Password = password;
-
             OrderHistory = new List<Guid>();
 
         }

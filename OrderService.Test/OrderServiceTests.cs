@@ -63,11 +63,11 @@ namespace OrderService.Test
             // Arrange
             var userId = Guid.NewGuid();
             var orders = new List<Order>
-        {
+            {
             new Order(Guid.NewGuid(),userId,Guid.NewGuid(),null,"123",10m,"Created",null,DateTime.UtcNow,DateTime.UtcNow),
             new Order(Guid.NewGuid(),userId,Guid.NewGuid(),null,"124",10m,"Paid",null,DateTime.UtcNow,DateTime.UtcNow),
             new Order(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),null,"125",10m,"Created",null,DateTime.UtcNow,DateTime.UtcNow)
-        };
+            };
             _mockRepository.Setup(r => r.GetOrdersForUserAsync(userId)).ReturnsAsync(orders.Where(o => o.UserId.Equals(userId)).ToList());
 
             // Act
@@ -85,11 +85,11 @@ namespace OrderService.Test
             // Arrange
             var restaurantId = Guid.NewGuid();
             var orders = new List<Order>
-        {
+            {
             new Order(Guid.NewGuid(),Guid.NewGuid(),restaurantId,null,"123",10m,"Created",null,DateTime.UtcNow,DateTime.UtcNow),
             new Order(Guid.NewGuid(),Guid.NewGuid(),restaurantId,null,"124",10m,"Paid",null,DateTime.UtcNow,DateTime.UtcNow),
             new Order(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),null,"125",10m,"Created",null,DateTime.UtcNow,DateTime.UtcNow)
-        };
+            };
             _mockRepository.Setup(r => r.GetOrdersForRestaurantAsync(restaurantId)).ReturnsAsync(orders.Where(o => o.RestaurantId.Equals(restaurantId)).ToList());
 
             // Act
@@ -100,6 +100,42 @@ namespace OrderService.Test
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.All(o => o.RestaurantId == restaurantId));
         }
+
+        [TestMethod]
+        public async Task UpdateOrderAsync_ShouldUpdateOrderStatus()
+        {
+            // Arrange
+            var order = new Order(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), null, "123", 10m, "Created", null, DateTime.UtcNow, DateTime.UtcNow);
+            var updatedStatus = "Paid";
+
+            _mockRepository.Setup(r => r.GetOrderAsync(order.Id)).ReturnsAsync(order);
+            _mockRepository.Setup(r => r.UpdateOrderAsync(order)).Returns(Task.CompletedTask);
+
+            // Act
+            await _orderService.UpdateOrderStatusAsync(order.Id, updatedStatus);
+
+            // Assert
+            _mockRepository.Verify(r => r.GetOrderAsync(order.Id), Times.Once);
+            _mockRepository.Verify(r => r.UpdateOrderAsync(order), Times.Once);
+            Assert.AreEqual(updatedStatus, order.Status);
+        }
+
+
+        [TestMethod]
+        public async Task DeleteOrderAsync_ShouldDeleteOrder()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+            var order = new Order(orderId, Guid.NewGuid(), Guid.NewGuid(), null, "123", 10m, "Created", null, DateTime.UtcNow, DateTime.UtcNow);
+            _mockRepository.Setup(r => r.GetOrderAsync(orderId)).ReturnsAsync(order);
+
+            // Act
+            await _orderService.DeleteOrderAsync(orderId);
+
+            // Assert
+            _mockRepository.Verify(r => r.DeleteOrderAsync(order), Times.Once);
+        }
+
     }
 
 }
