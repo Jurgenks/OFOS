@@ -1,4 +1,5 @@
-﻿using OFOS.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using OFOS.Domain.Models;
 using OrderService.Data;
 
 namespace OrderService.Core
@@ -67,6 +68,12 @@ namespace OrderService.Core
         {
             _dbContext.Orders.Remove(order);
             await _dbContext.SaveChangesAsync();
+        }
+
+        /// Gets the count of orders in the database
+        public async Task<int> GetOrdersCountAsync()
+        {
+            return await _dbContext.Orders.CountAsync();
         }
     }
 

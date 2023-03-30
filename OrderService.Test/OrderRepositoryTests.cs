@@ -138,6 +138,22 @@ namespace OrderService.Test
             Assert.IsNotNull(result);
             Assert.AreEqual("Paid", result.Status);
         }
+
+        [TestMethod]
+        public async Task GetOrdersCountAsync()
+        {
+            // Arrange
+            var order = new Order();
+            _dbContext.Orders.Add(order);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var count = await _orderRepository.GetOrdersCountAsync();
+
+            // Assert
+            Assert.IsNotNull(count);
+            Assert.AreEqual(1, count);
+        }
     }
 
 }

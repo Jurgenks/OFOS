@@ -10,6 +10,7 @@ namespace OrderService.Core
         Task<List<Order>?> GetOrdersForUserAsync(Guid userId);
         Task UpdateOrderAsync(Order order);
         Task DeleteOrderAsync(Order order);
+        Task<int> GetOrdersCountAsync();
     }
 
 }
