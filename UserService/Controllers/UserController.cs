@@ -62,12 +62,79 @@ namespace UserService.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<string?>> Authenticate([FromBody] User model)
         {
-            var user = await _userService.Authenticate(model.Email, model.Password);
+            var token = await _userService.Authenticate(model.Email, model.Password);
 
-            if (user == null)
+            if (token == null)
                 return Unauthorized();
 
-            return Ok(user);
+            return Ok(token);
         }
+
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Email))
+            {
+                return BadRequest("Please provide a valid email address");
+            }
+
+            var user = await _userService.GetUserByEmail(model.Email);
+
+            if (user == null)
+            {
+                // Do not reveal that the user does not exist
+                return Ok();
+            }
+
+            // Generate password reset token
+            var token =  _userService.GenerateJwtToken(user);
+
+            //Update the user with the new retrievalToken
+            user.RetrievalToken = token;
+            await _userService.UpdateUser(user);
+
+            // Send password reset email to user
+            //await _emailService.SendPasswordResetEmail(user, token);
+
+            return Ok();
+        }
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Token) || string.IsNullOrEmpty(model.NewPassword))
+            {
+                return BadRequest("Please provide valid credentials");
+            }
+
+            var user = await _userService.GetUserByEmail(model.Email);
+
+            if (user == null || user.RetrievalToken != model.Token)
+            {
+                // Do not reveal that the user does not exist
+                return Ok();
+            }
+
+            //Reset password with user, token and new password
+            await _userService.ResetPassword(user, model.Token, model.NewPassword);
+
+            return Ok();
+        }
+
+        public class ResetPasswordModel
+        {
+            public string? Email { get; set; }
+            public string? Token { get; set; }
+            public string? NewPassword { get; set; }
+        }
+
+        public class ForgotPasswordModel
+        {
+            public string? Email { get; set; }
+        }
+
+
     }
 }

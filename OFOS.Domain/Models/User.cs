@@ -19,6 +19,7 @@ namespace OFOS.Domain.Models
         public List<Guid> OrderHistory { get; set; }
 
         public string? AuthenticationToken { get; set; }
+        public string? RetrievalToken { get; set; }
 
         public User(string firstName, string lastName, string email, string? phoneNumber, string address, string city, string region, string postalCode, string country, string? password)
         {

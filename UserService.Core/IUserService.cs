@@ -1,4 +1,5 @@
-﻿using OFOS.Domain.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using OFOS.Domain.Models;
 
 namespace UserService.Core
 {
@@ -10,5 +11,7 @@ namespace UserService.Core
         Task DeleteUser(Guid id);
         Task<User?> GetUserByEmail(string email);
         Task<string?> Authenticate(string email, string password);
+        string GenerateJwtToken(User user);
+        Task ResetPassword(User user, string token, string newPassword);
     }
 }

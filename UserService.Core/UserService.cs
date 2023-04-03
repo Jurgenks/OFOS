@@ -21,7 +21,7 @@ namespace UserService.Core
         public async Task CreateUser(User user)
         {
             // Ensure that the user's ID is a valid GUID
-            if (user.Id != Guid.Empty)
+            if (user.Id != Guid.Empty && user.Password != null)
             {
                 // Encrypt the user's password before saving to the database
                 user.Password = EncryptPassword(user.Password);
@@ -44,6 +44,9 @@ namespace UserService.Core
             originalUser.FirstName = user.FirstName;
             originalUser.LastName = user.LastName;
             originalUser.Email = user.Email;
+            originalUser.Address = user.Address;
+            originalUser.RetrievalToken = user.RetrievalToken;
+            originalUser.AuthenticationToken = user.AuthenticationToken;
 
             // Encrypt the user's password before saving to the database
             originalUser.Password = EncryptPassword(user.Password);
@@ -68,38 +71,64 @@ namespace UserService.Core
             // Check if the user exists and the password is correct
             if (user != null && VerifyPassword(password, user.Password))
             {
-                // Generate a JWT token with the user's ID as the subject claim
-                JwtSecurityTokenHandler tokenHandler = new();
-                byte[] key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-                        SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDescriptor);
+                var token = GenerateJwtToken(user);
 
-                return tokenHandler.WriteToken(token);
+                user.AuthenticationToken = token;
+
+                await UpdateUser(user);
+
+                return token;
             }
 
             return null;
         }
 
+        public async Task ResetPassword(User user, string token, string newPassword)
+        {
+            var originalUser = GetUser(user.Id).Result;
+
+            if (originalUser != null)
+            {
+                originalUser.Password = newPassword;
+
+                await UpdateUser(originalUser);
+            }
+        }
+
+        public string GenerateJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+            new Claim(ClaimTypes.Name, $"{user.FirstName[..1]}{"."}{user.LastName}"),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
         private static string EncryptPassword(string password)
         {
             // Implement password encryption logic here
+            password = AesEncryptor.Encrypt(password);
             return password;
         }
 
         private static bool VerifyPassword(string password, string hashedPassword)
         {
             // Implement password verification logic here
+            hashedPassword = AesEncryptor.Decrypt(hashedPassword);
             return password == hashedPassword;
         }
+
+
     }
 
 
