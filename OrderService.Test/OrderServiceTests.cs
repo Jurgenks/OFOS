@@ -25,11 +25,11 @@ namespace OrderService.Test
             var userId = Guid.NewGuid();
             var restaurantId = Guid.NewGuid();
             var products = new List<Product>
-        {
+            {
             new Product("Product1","DescriptionText1",10m,100),
             new Product("Product2","DescriptionText2",20m,200),
             new Product("Product3","DescriptionText3",30m,300)
-        };
+            };
 
             // Act
             await _orderService.CreateOrderAsync(userId, restaurantId, products);
@@ -55,6 +55,7 @@ namespace OrderService.Test
             Assert.AreEqual(order.UserId, result.UserId);
             Assert.AreEqual(order.RestaurantId, result.RestaurantId);
             Assert.AreEqual(order.Status, result.Status);
+            Assert.AreEqual(order.OrderNumber,result.OrderNumber);
         }
 
         [TestMethod]

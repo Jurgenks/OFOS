@@ -21,7 +21,9 @@ namespace OrderService.Core
             }
 
             // Create order
-            var order = new Order(userId, restaurantId, "OrderNumber", totalPrice, "Created", products);
+            string orderNumber = await GenerateOrderNumberAsync();
+
+            var order = new Order(userId, restaurantId, orderNumber, totalPrice, "Created", products);
 
             // Save order to repository
             await _orderRepository.CreateOrderAsync(order);
@@ -74,6 +76,20 @@ namespace OrderService.Core
 
             await _orderRepository.DeleteOrderAsync(order);
         }
+
+        private async Task<string> GenerateOrderNumberAsync()
+        {
+            int orderCount = await _orderRepository.GetOrdersCountAsync();
+            string year = DateTime.UtcNow.Year.ToString();
+            string month = DateTime.UtcNow.Month.ToString().PadLeft(2, '0');
+            string day = DateTime.UtcNow.Day.ToString().PadLeft(2, '0');
+            string hour = DateTime.UtcNow.Hour.ToString().PadLeft(2, '0');
+            string minute = DateTime.UtcNow.Minute.ToString().PadLeft(2, '0');
+            string second = DateTime.UtcNow.Second.ToString().PadLeft(2, '0');
+            string orderNumber = $"{year}{month}{day}-{hour}{minute}{second}-{orderCount + 1}";
+            return orderNumber;
+        }
+
 
     }
 
