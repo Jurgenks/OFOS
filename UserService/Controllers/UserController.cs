@@ -47,6 +47,17 @@ namespace UserService.Controllers
             return NoContent();
         }
 
+        [HttpPost("create")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateUser([FromBody] User model)
+        {
+            if(model == null) return BadRequest();
+
+            await _userService.CreateUser(model);
+
+            return Ok("User: " + model.Id + " is created" );
+        }
+
         [HttpPost("authenticate")]
         [AllowAnonymous]
         public async Task<ActionResult<string?>> Authenticate([FromBody] User model)

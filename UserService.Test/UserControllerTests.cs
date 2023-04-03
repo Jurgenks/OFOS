@@ -93,6 +93,37 @@ namespace UserService.Test
         }
 
         [TestMethod]
+        public async Task CreateUser_ReturnsOk_WhenUserCreated()
+        {
+            // Arrange
+            var newUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(x => x.CreateUser(newUser)).Verifiable();
+
+            // Act
+            var result = await _controller.CreateUser(newUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.AreEqual("User: " + newUser.Id + " is created", okResult.Value);
+            _mockUserService.Verify(x => x.CreateUser(newUser), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task CreateUser_ReturnsBadRequest_WhenModelIsNull()
+        {
+            // Arrange
+            User model = null;
+
+            // Act
+            var result = await _controller.CreateUser(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+
+        [TestMethod]
         public async Task Authenticate_ReturnsUnauthorized_WhenUserNotFound()
         {
             // Arrange
