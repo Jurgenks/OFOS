@@ -18,10 +18,9 @@ namespace NotificationService.Core
             return await _dbContext.Notifications.SingleOrDefaultAsync(n => n.Id == id);
         }
 
-        public async Task<IEnumerable<Notification>> GetByUserIdAsync(Guid userId)
+        public async Task<List<Notification>> GetByUserIdAsync(Guid userId)
         {
             return await _dbContext.Notifications
-                .AsNoTracking()
                 .Where(n => n.UserId == userId)
                 .ToListAsync();
         }
