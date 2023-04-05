@@ -10,7 +10,7 @@ namespace NotificationService.Core
     public interface INotificationRepository
     {
         Task<Notification?> GetByIdAsync(Guid id);
-        Task<IEnumerable<Notification>> GetByUserIdAsync(Guid userId);
+        Task<List<Notification>> GetByUserIdAsync(Guid userId);
         Task CreateAsync(Notification notification);
         Task DeleteAsync(Guid id);
     }
