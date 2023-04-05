@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using OFOS.Domain.Models;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Channels;
 using UserService.Core;
 
 namespace UserService.Controllers
@@ -11,11 +16,16 @@ namespace UserService.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IConnection _rabbitConnection;
+        private readonly IModel _rabbitChannel;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IConnection rabbitConnection)
         {
             _userService = userService;
+            _rabbitConnection = rabbitConnection;
+            _rabbitChannel = _rabbitConnection.CreateModel();
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<User?>> GetUser(Guid id)
@@ -94,8 +104,22 @@ namespace UserService.Controllers
             user.RetrievalToken = token;
             await _userService.UpdateUser(user);
 
-            // Send password reset email to user
-            //await _emailService.SendPasswordResetEmail(user, token);
+            // Create email message
+            var emailMessage = new EmailMessage
+            {
+                To = user.Email,
+                Subject = "Password reset",
+                Body = $"Click this link to reset your password: {"[RESETLINK]"}"
+            };
+
+            // Serialize email message as message body
+            var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
+
+            // Publish message to RabbitMQ 
+            _rabbitChannel.BasicPublish(exchange: "",
+                                  routingKey: "email-queue",
+                                  basicProperties: null,
+                                  body: messageBody);
 
             return Ok();
         }

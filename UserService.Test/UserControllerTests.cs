@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Newtonsoft.Json;
 using OFOS.Domain.Models;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json.Nodes;
 using UserService.Controllers;
 using UserService.Core;
 using static UserService.Controllers.UserController;
@@ -11,13 +15,21 @@ namespace UserService.Test
     public class UserControllerTests
     {
         private Mock<IUserService> _mockUserService;
+        private Mock<IConnection> _mockConnection;
+        private Mock<IModel> _mockChannel;
         private UserController _controller;
 
         [TestInitialize]
         public void Setup()
         {
             _mockUserService = new Mock<IUserService>();
-            _controller = new UserController(_mockUserService.Object);
+            _mockConnection = new Mock<IConnection>();
+            _mockChannel = new Mock<IModel>();
+
+            _mockConnection.Setup(c => c.CreateModel())
+                           .Returns(_mockChannel.Object);
+
+            _controller = new UserController(_mockUserService.Object, _mockConnection.Object);
         }
 
         [TestMethod]
@@ -212,6 +224,34 @@ namespace UserService.Test
             Assert.IsInstanceOfType(result, typeof(OkResult));
             _mockUserService.Verify(x => x.UpdateUser(It.Is<User>(u => u.Email == model.Email && u.RetrievalToken == "test-token")), Times.Once);
         }
+
+        [TestMethod]
+        public async Task ForgotPassword_WhenCalledWithValidEmail_ShouldSendPasswordResetMessageToRabbitMQ()
+        {
+            // Arrange
+            var email = "test@example.com";
+            var model = new ForgotPasswordModel { Email = email };
+            var user = new User("John", "Doe", model.Email, null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(u => u.GetUserByEmail(email)).ReturnsAsync(user);
+            _mockChannel.Setup(m => m.ExchangeDeclare(It.IsAny<string>(), ExchangeType.Direct, true, false, null));
+            _mockChannel.Setup(x => x.BasicPublish(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IBasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>()))
+            .Callback<string, string, bool, IBasicProperties, ReadOnlyMemory<byte>>((exchange, routingKey, mandatory, basicProperties, body) =>
+            {
+                var message = JsonConvert.DeserializeObject<EmailMessage>(Encoding.UTF8.GetString(body.ToArray()));
+
+                // Assert
+                Assert.AreEqual(user.Email, message.To);
+                Assert.AreEqual("Password reset", message.Subject);
+                Assert.AreEqual($"Click this link to reset your password: {"[RESETLINK]"}", message.Body);
+            });
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            _mockChannel.Verify(m => m.BasicPublish(It.IsAny<string>(), It.IsAny<string>(), false, null, It.IsAny<ReadOnlyMemory<byte>>()), Times.Once);
+        }
+
 
         [TestMethod]
         public async Task ResetPassword_ReturnsBadRequest_WhenModelIsNull()
