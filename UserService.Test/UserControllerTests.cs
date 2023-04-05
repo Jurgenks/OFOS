@@ -1,8 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Newtonsoft.Json;
 using OFOS.Domain.Models;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json.Nodes;
 using UserService.Controllers;
 using UserService.Core;
+using static UserService.Controllers.UserController;
 
 namespace UserService.Test
 {
@@ -10,13 +15,21 @@ namespace UserService.Test
     public class UserControllerTests
     {
         private Mock<IUserService> _mockUserService;
+        private Mock<IConnection> _mockConnection;
+        private Mock<IModel> _mockChannel;
         private UserController _controller;
 
         [TestInitialize]
         public void Setup()
         {
             _mockUserService = new Mock<IUserService>();
-            _controller = new UserController(_mockUserService.Object);
+            _mockConnection = new Mock<IConnection>();
+            _mockChannel = new Mock<IModel>();
+
+            _mockConnection.Setup(c => c.CreateModel())
+                           .Returns(_mockChannel.Object);
+
+            _controller = new UserController(_mockUserService.Object, _mockConnection.Object);
         }
 
         [TestMethod]
@@ -93,6 +106,37 @@ namespace UserService.Test
         }
 
         [TestMethod]
+        public async Task CreateUser_ReturnsOk_WhenUserCreated()
+        {
+            // Arrange
+            var newUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(x => x.CreateUser(newUser)).Verifiable();
+
+            // Act
+            var result = await _controller.CreateUser(newUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.AreEqual("User: " + newUser.Id + " is created", okResult.Value);
+            _mockUserService.Verify(x => x.CreateUser(newUser), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task CreateUser_ReturnsBadRequest_WhenModelIsNull()
+        {
+            // Arrange
+            User model = null;
+
+            // Act
+            var result = await _controller.CreateUser(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+
+        [TestMethod]
         public async Task Authenticate_ReturnsUnauthorized_WhenUserNotFound()
         {
             // Arrange
@@ -122,6 +166,130 @@ namespace UserService.Test
             Assert.IsNotNull(okResult);
             Assert.IsNotNull(okResult.Value);
             Assert.AreEqual(okResult.Value, jwtToken);
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ReturnsBadRequest_WhenModelIsNull()
+        {
+            // Arrange
+            ForgotPasswordModel model = null;
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ReturnsBadRequest_WhenEmailIsNullOrEmpty()
+        {
+            // Arrange
+            var model = new ForgotPasswordModel { Email = null };
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ReturnsOk_WhenUserDoesNotExist()
+        {
+            // Arrange
+            var model = new ForgotPasswordModel { Email = "test@example.com" };
+            _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync((User)null);
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkResult));
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ReturnsOk_WhenUserExists()
+        {
+            // Arrange
+            var model = new ForgotPasswordModel { Email = "test@example.com" };
+            var user = new User("John", "Doe", model.Email, null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync(user);
+            _mockUserService.Setup(x => x.GenerateJwtToken(user)).Returns("test-token");
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkResult));
+            _mockUserService.Verify(x => x.UpdateUser(It.Is<User>(u => u.Email == model.Email && u.RetrievalToken == "test-token")), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_WhenCalledWithValidEmail_ShouldSendPasswordResetMessageToRabbitMQ()
+        {
+            // Arrange
+            var email = "test@example.com";
+            var model = new ForgotPasswordModel { Email = email };
+            var user = new User("John", "Doe", model.Email, null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(u => u.GetUserByEmail(email)).ReturnsAsync(user);
+            _mockChannel.Setup(m => m.ExchangeDeclare(It.IsAny<string>(), ExchangeType.Direct, true, false, null));
+            _mockChannel.Setup(x => x.BasicPublish(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IBasicProperties>(), It.IsAny<ReadOnlyMemory<byte>>()))
+            .Callback<string, string, bool, IBasicProperties, ReadOnlyMemory<byte>>((exchange, routingKey, mandatory, basicProperties, body) =>
+            {
+                var message = JsonConvert.DeserializeObject<EmailMessage>(Encoding.UTF8.GetString(body.ToArray()));
+
+                // Assert
+                Assert.AreEqual(user.Email, message.To);
+                Assert.AreEqual("Password reset", message.Subject);
+                Assert.AreEqual($"Click this link to reset your password: {"[RESETLINK]"}", message.Body);
+            });
+
+            // Act
+            var result = await _controller.ForgotPassword(model);
+
+            // Assert
+            _mockChannel.Verify(m => m.BasicPublish(It.IsAny<string>(), It.IsAny<string>(), false, null, It.IsAny<ReadOnlyMemory<byte>>()), Times.Once);
+        }
+
+
+        [TestMethod]
+        public async Task ResetPassword_ReturnsBadRequest_WhenModelIsNull()
+        {
+            // Arrange
+            ResetPasswordModel? model = null;
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ReturnsBadRequest_WhenEmailIsNullOrEmpty()
+        {
+            // Arrange
+            var model = new ResetPasswordModel { Email = null, Token = "test-token", NewPassword = "new-password" };
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ReturnsBadRequest_WhenTokenIsNullOrEmpty()
+        {
+            // Arrange
+            var model = new ResetPasswordModel { Email = "test@example.com", Token = null, NewPassword = "new-password" };
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
     }

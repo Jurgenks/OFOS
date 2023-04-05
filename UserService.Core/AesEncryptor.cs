@@ -6,8 +6,8 @@ namespace UserService.Core
     public static class AesEncryptor
     {
         // The key and initialization vector used for encryption and decryption
-        private static readonly byte[] Key = Encoding.UTF8.GetBytes("16characterkey!!");
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("16characterIV!!");
+        private static readonly byte[] Key = Encoding.UTF8.GetBytes("d7b2e72c8d7f94a1");
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("4c8e9e066c03ef54");
 
         public static string Encrypt(string plainText)
         {

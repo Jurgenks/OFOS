@@ -18,7 +18,6 @@ namespace UserService.Test
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _configurationMock = new Mock<IConfiguration>();
-            _configurationMock.Setup(x => x["JwtSecret"]).Returns("TestKey");
             _userService = new Service(_userRepositoryMock.Object, _configurationMock.Object);
         }
 
@@ -106,6 +105,23 @@ namespace UserService.Test
             // Assert
             Assert.AreEqual(user, result);
         }
+
+        [TestMethod]
+        public void GenerateJwtToken_ValidUser_ReturnsToken()
+        {
+            // Arrange
+            var email = "johndoe@example.com";
+            var user = new User("John", "Doe", email, null, null, null, null, null, null, "password123");
+
+            _configurationMock.Setup(x => x["JwtSettings:SecretKey"]).Returns("MySuperSecretKey");
+
+            // Act
+            var result = _userService.GenerateJwtToken(user);
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
     }
 
 }
