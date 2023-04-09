@@ -55,7 +55,7 @@ namespace OrderService.Test
             Assert.AreEqual(order.UserId, result.UserId);
             Assert.AreEqual(order.RestaurantId, result.RestaurantId);
             Assert.AreEqual(order.Status, result.Status);
-            Assert.AreEqual(order.OrderNumber,result.OrderNumber);
+            Assert.AreEqual(order.OrderNumber, result.OrderNumber);
         }
 
         [TestMethod]

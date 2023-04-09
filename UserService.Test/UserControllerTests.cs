@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Newtonsoft.Json;
 using OFOS.Domain.Models;
-using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json.Nodes;
 using UserService.Controllers;
 using UserService.Core;
 using static UserService.Controllers.UserController;

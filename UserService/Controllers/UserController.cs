@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using OFOS.Domain.Models;
-using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Channels;
 using UserService.Core;
 
 namespace UserService.Controllers
@@ -57,11 +52,11 @@ namespace UserService.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> CreateUser([FromBody] User model)
         {
-            if(model == null) return BadRequest();
+            if (model == null) return BadRequest();
 
             await _userService.CreateUser(model);
 
-            return Ok("User: " + model.Id + " is created" );
+            return Ok("User: " + model.Id + " is created");
         }
 
         [HttpPost("authenticate")]

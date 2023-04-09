@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using OFOS.Domain.Models;
+﻿using OFOS.Domain.Models;
 
 namespace UserService.Core
 {
