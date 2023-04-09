@@ -11,7 +11,7 @@ namespace UserService.Core
         Task DeleteUser(Guid id);
         Task<User?> GetUserByEmail(string email);
         Task<string?> Authenticate(string email, string password);
-        string GenerateJwtToken(User user);
         Task ResetPassword(User user, string token, string newPassword);
+        Task SendResetToken(User user);
     }
 }
