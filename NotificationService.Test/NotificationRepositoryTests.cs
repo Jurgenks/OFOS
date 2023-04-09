@@ -39,7 +39,7 @@ namespace NotificationService.Test
         public async Task GetByIdAsync_ShouldReturnCorrectNotification()
         {
             // Arrange
-            var notification = new Notification(Guid.NewGuid(), "test", "test", "test");
+            var notification = new Notification("test", "test", "test");
 
             // Act
             await _notificationRepository.CreateAsync(notification);
@@ -51,34 +51,10 @@ namespace NotificationService.Test
         }
 
         [TestMethod]
-        public async Task GetByUserIdAsync_ShouldReturnCorrectNotifications()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var notifications = new List<Notification>
-            {
-                new Notification(userId, "test", "test", "test"),
-                new Notification(userId, "test", "test", "test"),
-                new Notification(Guid.NewGuid(), "test", "test", "test"),
-            };
-
-            await _notificationRepository.CreateAsync(notifications[0]);
-            await _notificationRepository.CreateAsync(notifications[1]);
-            await _notificationRepository.CreateAsync(notifications[2]);
-
-            // Act
-            var result = await _notificationRepository.GetByUserIdAsync(userId);
-            var expected = notifications.Where(n => n.UserId == userId).ToList();
-
-            // Assert
-            CollectionAssert.AreEquivalent(expected, result.ToList());
-        }
-
-        [TestMethod]
         public async Task CreateAsync_ShouldCreateNewNotification()
         {
             // Arrange
-            var notification = new Notification(Guid.NewGuid(), "test", "test", "test");
+            var notification = new Notification("test", "test", "test");
 
 
             // Act
@@ -92,7 +68,7 @@ namespace NotificationService.Test
         public async Task DeleteAsync_ShouldDeleteExistingNotification()
         {
             // Arrange
-            var notification = new Notification(Guid.NewGuid(), "test", "test", "test");
+            var notification = new Notification("test", "test", "test");
 
             // Act
             await _notificationRepository.CreateAsync(notification);

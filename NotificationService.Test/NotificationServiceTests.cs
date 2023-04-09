@@ -35,7 +35,6 @@ namespace NotificationService.Test
         {
             // Arrange
             var emailMessage = "{\"to\":\"test@test.com\",\"subject\":\"Test email\",\"body\":\"This is a test email\"}";
-            var userId = Guid.Empty;
             _notificationRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<Notification>())).Verifiable();
 
             // Act
@@ -43,7 +42,6 @@ namespace NotificationService.Test
 
             // Assert
             _notificationRepositoryMock.Verify(x => x.CreateAsync(It.Is<Notification>(n =>
-                n.UserId == userId &&
                 n.Message == emailMessage &&
                 n.Type == "Email" &&
                 n.Status == "Received"

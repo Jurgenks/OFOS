@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OFOS.Domain.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Net.Mail;
+using System.Net;
 using System.Text;
 
 namespace NotificationService.Core
@@ -28,17 +29,28 @@ namespace NotificationService.Core
             {
                 var email = JsonConvert.DeserializeObject<EmailMessage>(emailMessage);
 
-                var userId = Guid.Empty;
+                Notification notification = new(emailMessage, "Email", "Received");
 
-                Notification notification = new(userId, emailMessage, "Email", "Received");
+                SendEmailMessage(email);
 
                 _notificationRepository.CreateAsync(notification);
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur while processing the message
-                // For example, log the error or send it to an error queue
+                Console.WriteLine(ex.ToString());
             }
+        }
+
+        private static void SendEmailMessage(EmailMessage mail)
+        {
+            using var client = new SmtpClient("smtp.mail.com", 587);
+            client.EnableSsl = true;
+            client.Credentials = new NetworkCredential("your-email@mail.com", "your-password");
+
+            var message = new MailMessage("your-email@mail.com", mail.To, mail.Subject, mail.Body);
+            client.Send(message);
+
         }
 
         private void RegisterMessageConsumers()
@@ -59,7 +71,7 @@ namespace NotificationService.Core
                 catch (Exception ex)
                 {
                     // Handle any exceptions that occur while processing the message
-                    // For example, log the error or send it to an error queue
+                    Console.WriteLine(ex.ToString());
 
                     // Reject the message to put it back into the queue (optional)
                     _rabbitChannel.BasicReject(ea.DeliveryTag, true);
