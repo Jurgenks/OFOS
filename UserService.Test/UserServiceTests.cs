@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Moq;
 using OFOS.Domain.Models;
+using RabbitMQ.Client;
 using UserService.Core;
 using Service = UserService.Core.UserService;
 
@@ -11,6 +12,8 @@ namespace UserService.Test
     {
         private Mock<IUserRepository> _userRepositoryMock;
         private Mock<IConfiguration> _configurationMock;
+        private Mock<IConnection> _mockConnection;
+        private Mock<IModel> _mockChannel;
         private Service _userService;
 
         [TestInitialize]
@@ -18,7 +21,12 @@ namespace UserService.Test
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _configurationMock = new Mock<IConfiguration>();
-            _userService = new Service(_userRepositoryMock.Object, _configurationMock.Object);
+            _mockConnection = new Mock<IConnection>();
+            _mockChannel = new Mock<IModel>();
+            _mockConnection.Setup(c => c.CreateModel())
+                           .Returns(_mockChannel.Object);
+
+            _userService = new Service(_userRepositoryMock.Object, _configurationMock.Object, _mockConnection.Object);
         }
 
         [TestMethod]
@@ -105,23 +113,6 @@ namespace UserService.Test
             // Assert
             Assert.AreEqual(user, result);
         }
-
-        [TestMethod]
-        public void GenerateJwtToken_ValidUser_ReturnsToken()
-        {
-            // Arrange
-            var email = "johndoe@example.com";
-            var user = new User("John", "Doe", email, null, null, null, null, null, null, "password123");
-
-            _configurationMock.Setup(x => x["JwtSettings:SecretKey"]).Returns("MySuperSecretKey");
-
-            // Act
-            var result = _userService.GenerateJwtToken(user);
-
-            // Assert
-            Assert.IsNotNull(result);
-        }
-
     }
 
 }

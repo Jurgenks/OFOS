@@ -16,14 +16,10 @@ namespace UserService.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IConnection _rabbitConnection;
-        private readonly IModel _rabbitChannel;
 
-        public UserController(IUserService userService, IConnection rabbitConnection)
+        public UserController(IUserService userService)
         {
             _userService = userService;
-            _rabbitConnection = rabbitConnection;
-            _rabbitChannel = _rabbitConnection.CreateModel();
         }
 
 
@@ -89,6 +85,7 @@ namespace UserService.Controllers
                 return BadRequest("Please provide a valid email address");
             }
 
+            //Get User by E-mail address
             var user = await _userService.GetUserByEmail(model.Email);
 
             if (user == null)
@@ -97,29 +94,8 @@ namespace UserService.Controllers
                 return Ok();
             }
 
-            // Generate password reset token
-            var token =  _userService.GenerateJwtToken(user);
-
-            //Update the user with the new retrievalToken
-            user.RetrievalToken = token;
-            await _userService.UpdateUser(user);
-
-            // Create email message
-            var emailMessage = new EmailMessage
-            {
-                To = user.Email,
-                Subject = "Password reset",
-                Body = $"Click this link to reset your password: {"[RESETLINK]"}"
-            };
-
-            // Serialize email message as message body
-            var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
-
-            // Publish message to RabbitMQ 
-            _rabbitChannel.BasicPublish(exchange: "",
-                                  routingKey: "email-queue",
-                                  basicProperties: null,
-                                  body: messageBody);
+            //Send ResetToken to UserService
+            await _userService.SendResetToken(user);
 
             return Ok();
         }

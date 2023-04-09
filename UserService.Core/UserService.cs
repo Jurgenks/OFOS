@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using OFOS.Domain.Models;
+using RabbitMQ.Client;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,11 +13,15 @@ namespace UserService.Core
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IConnection _rabbitConnection;
+        private readonly IModel _rabbitChannel;
 
-        public UserService(IUserRepository userRepository, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, IConfiguration configuration, IConnection rabbitConnection)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _rabbitConnection = rabbitConnection;
+            _rabbitChannel = _rabbitConnection.CreateModel();
         }
 
         public async Task CreateUser(User user)
@@ -95,7 +101,34 @@ namespace UserService.Core
             }
         }
 
-        public string GenerateJwtToken(User user)
+        public async Task SendResetToken(User user)
+        {
+            // Generate password reset token
+            var token = GenerateJwtToken(user);
+
+            //Update the user with the new retrievalToken
+            user.RetrievalToken = token;
+            await UpdateUser(user);
+
+            // Create email message
+            var emailMessage = new EmailMessage
+            {
+                To = user.Email,
+                Subject = "Password reset",
+                Body = $"Click this link to reset your password: {"[RESETLINK]"}"
+            };
+
+            // Serialize email message as message body
+            var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
+
+            // Publish message to RabbitMQ 
+            _rabbitChannel.BasicPublish(exchange: "",
+                                  routingKey: "email-queue",
+                                  basicProperties: null,
+                                  body: messageBody);
+        }
+
+        private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
