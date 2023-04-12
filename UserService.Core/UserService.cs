@@ -111,12 +111,7 @@ namespace UserService.Core
             await UpdateUser(user);
 
             // Create email message
-            var emailMessage = new EmailMessage
-            {
-                To = user.Email,
-                Subject = "Password reset",
-                Body = $"Click this link to reset your password: {"[RESETLINK]"}"
-            };
+            var emailMessage = new EmailMessage(user.Email, "Password reset", $"Click this link to reset your password: {"[RESETLINK]"}");
 
             // Serialize email message as message body
             var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));

@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrderService.Core", "OrderS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserService.Test", "UserService.Test\UserService.Test.csproj", "{76B0621F-C485-4C6A-842D-9653138A1A74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.Test", "NotificationService.Test\NotificationService.Test.csproj", "{2DA96472-6532-49CE-BC68-98203C0DF795}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,6 +147,10 @@ Global
 		{76B0621F-C485-4C6A-842D-9653138A1A74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76B0621F-C485-4C6A-842D-9653138A1A74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76B0621F-C485-4C6A-842D-9653138A1A74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DA96472-6532-49CE-BC68-98203C0DF795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DA96472-6532-49CE-BC68-98203C0DF795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DA96472-6532-49CE-BC68-98203C0DF795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DA96472-6532-49CE-BC68-98203C0DF795}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
