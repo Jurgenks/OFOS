@@ -54,9 +54,19 @@ namespace UserService.Controllers
         {
             if (model == null) return BadRequest();
 
-            await _userService.CreateUser(model);
+            var user = await _userService.GetUserByEmail(model.Email);
 
-            return Ok("User: " + model.Id + " is created");
+            if(user == null)
+            {
+                await _userService.CreateUser(model);
+                return Ok("User: " + model.Id + " is created");
+            }
+            else
+            {
+                return BadRequest("User: " + model.Email + " is already created");
+            }
+
+
         }
 
         [HttpPost("authenticate")]

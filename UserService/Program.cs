@@ -45,9 +45,6 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-// Register the JwtSettings with the dependency injection container
-JwtSettings jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
-builder.Services.AddSingleton(jwtSettings);
 
 //RabbitMQ connection
 builder.Services.AddSingleton(provider =>
