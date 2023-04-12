@@ -34,7 +34,7 @@ services:
     depends_on:
       - restaurant-db
     environment:
-      ConnectionStrings__RestaurantDb: "Server=restaurant-db;Database=restaurantdb;User=yourusername;Password=yourpassword"
+      ConnectionStrings__RestaurantDb: "Server=restaurant-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
 
   user-service:
     build:
@@ -45,7 +45,11 @@ services:
     depends_on:
       - user-db
     environment:
-      ConnectionStrings__UserDb: "Server=user-db;Database=userdb;User=yourusername;Password=yourpassword"
+      ConnectionStrings__UserDb: "Server=user-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "rabbitmquser"
+      RabbitMq__Password: "rabbitmqpassword"
 
   payment-service:
     build:
@@ -56,7 +60,7 @@ services:
     depends_on:
       - payment-db
     environment:
-      ConnectionStrings__PaymentDb: "Server=payment-db;Database=paymentdb;User=yourusername;Password=yourpassword"
+      ConnectionStrings__PaymentDb: "Server=payment-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
 
   order-service:
     build:
@@ -67,7 +71,7 @@ services:
     depends_on:
       - order-db
     environment:
-      ConnectionStrings__OrderDb: "Server=order-db;Database=orderdb;User=yourusername;Password=yourpassword"
+      ConnectionStrings__OrderDb: "Server=order-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
 
   notification-service:
     build:
@@ -79,63 +83,69 @@ services:
       - notification-db
       - rabbitmq 
     environment:
-      ConnectionStrings__NotificationDb: "Server=notification-db;Database=notificationdb;User=yourusername;Password=yourpassword"
+      ConnectionStrings__NotificationDb: "Server=notification-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
       RabbitMq__Host: "rabbitmq"
       RabbitMq__Port: "5672"
       RabbitMq__Username: "rabbitmquser"
       RabbitMq__Password: "rabbitmqpassword"
 
   restaurant-db:
-    image: mysql:latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpassword
-      MYSQL_DATABASE: restaurantdb
-      MYSQL_USER: yourusername
-      MYSQL_PASSWORD: yourpassword
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - restaurant-db-data:/var/opt/mssql 
     ports:
-      - "3306:3306"    
+      - "1433:1433"
 
   user-db:
-    image: mysql:latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpassword
-      MYSQL_DATABASE: userdb
-      MYSQL_USER: yourusername
-      MYSQL_PASSWORD: yourpassword
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - user-db-data:/var/opt/mssql 
     ports:
-      - "3307:3306"    
+      - "1434:1433"
 
   payment-db:
-    image: mysql:latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpassword
-      MYSQL_DATABASE: paymentdb
-      MYSQL_USER: yourusername
-      MYSQL_PASSWORD: yourpassword
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - payment-db-data:/var/opt/mssql 
     ports:
-      - "3308:3306"  
+      - "1435:1433"
 
   order-db:
-    image: mysql:latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpassword
-      MYSQL_DATABASE: orderdb
-      MYSQL_USER: yourusername
-      MYSQL_PASSWORD: yourpassword
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - order-db-data:/var/opt/mssql 
     ports:
-      - "3309:3306"   
+      - "1436:1433"
 
   notification-db:
-    image: mysql:latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpassword
-      MYSQL_DATABASE: notificationdb
-      MYSQL_USER: yourusername
-      MYSQL_PASSWORD: yourpassword
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - notification-db-data:/var/opt/mssql 
     ports:
-      - "3310:3306"
+      - "1437:1433"
+volumes:
+  restaurant-db-data:
+  user-db-data:
+  notification-db-data:
+  order-db-data:
+  payment-db-data:
