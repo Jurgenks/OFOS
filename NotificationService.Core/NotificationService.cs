@@ -42,7 +42,7 @@ namespace NotificationService.Core
             }
         }
 
-        private static void SendEmailMessage(EmailMessage mail)
+        public void SendEmailMessage(EmailMessage mail)
         {
             var client = new SmtpClient("sandbox.smtp.mailtrap.io", 2525)
             {
