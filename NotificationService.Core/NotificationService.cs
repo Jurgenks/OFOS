@@ -44,11 +44,13 @@ namespace NotificationService.Core
 
         private static void SendEmailMessage(EmailMessage mail)
         {
-            using var client = new SmtpClient("smtp.mail.com", 587);
-            client.EnableSsl = true;
-            client.Credentials = new NetworkCredential("your-email@mail.com", "your-password");
+            var client = new SmtpClient("sandbox.smtp.mailtrap.io", 2525)
+            {
+                Credentials = new NetworkCredential("7f2e6b3b42281b", "021e06df2a4f7b"),
+                EnableSsl = true
+            };
 
-            var message = new MailMessage("your-email@mail.com", mail.To, mail.Subject, mail.Body);
+            var message = new MailMessage("test@ofos.nl", mail.To, mail.Subject, mail.Body);
             client.Send(message);
 
         }
