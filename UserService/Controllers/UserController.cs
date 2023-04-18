@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OFOS.Domain.Models;
+using System.Security.Claims;
 using UserService.Core;
+using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace UserService.Controllers
 {
@@ -21,6 +23,13 @@ namespace UserService.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User?>> GetUser(Guid id)
         {
+            // Get the user id from the JWT
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Check if the user making the request is the same as the user whose data is being retrieved
+            if (userId != id.ToString())
+                return Forbid();
+
             var user = await _userService.GetUser(id);
 
             if (user == null)
@@ -29,9 +38,17 @@ namespace UserService.Controllers
             return Ok(user);
         }
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] User user)
         {
+            // Get the user id from the JWT
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Check if the user making the request is the same as the user whose data is being retrieved
+            if (userId != id.ToString())
+                return Forbid();
+
             if (id != user.Id)
                 return BadRequest();
 
@@ -43,6 +60,13 @@ namespace UserService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
+            // Get the user id from the JWT
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Check if the user making the request is the same as the user whose data is being retrieved
+            if (userId != id.ToString())
+                return Forbid();
+
             await _userService.DeleteUser(id);
 
             return NoContent();
@@ -56,7 +80,7 @@ namespace UserService.Controllers
 
             var user = await _userService.GetUserByEmail(model.Email);
 
-            if(user == null)
+            if (user == null)
             {
                 await _userService.CreateUser(model);
                 return Ok("User: " + model.Id + " is created");
@@ -78,20 +102,29 @@ namespace UserService.Controllers
             if (token == null)
                 return Unauthorized();
 
+            // Create a new cookie and set the value to the JWT token
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTimeOffset.UtcNow.AddDays(7), // Set the cookie expiration time
+            };
+
+            Response.Cookies.Append("jwt", token, cookieOptions);
+
             return Ok(token);
         }
 
         [HttpPost("forgot-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+        public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         {
-            if (model == null || string.IsNullOrEmpty(model.Email))
+            if (string.IsNullOrEmpty(email))
             {
                 return BadRequest("Please provide a valid email address");
             }
 
             //Get User by E-mail address
-            var user = await _userService.GetUserByEmail(model.Email);
+            var user = await _userService.GetUserByEmail(email);
 
             if (user == null)
             {
@@ -100,38 +133,35 @@ namespace UserService.Controllers
             }
 
             //Send ResetToken to UserService
-            await _userService.SendResetToken(user);
+            _userService.SendResetToken(user);
 
             return Ok();
         }
 
         [HttpPost("reset-password")]
-        [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        public async Task<IActionResult> ResetPassword([FromBody] string newPassword)
         {
-            if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Token) || string.IsNullOrEmpty(model.NewPassword))
+            if (string.IsNullOrEmpty(newPassword))
             {
-                return BadRequest("Please provide valid credentials");
+                return BadRequest("Please provide a new password");
             }
 
-            var user = await _userService.GetUserByEmail(model.Email);
+            // Get the user id from the JWT
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (user == null || user.RetrievalToken != model.Token)
+            if (userId == null)
             {
-                // Do not reveal that the user does not exist
-                return Ok();
+                return BadRequest("No ResetToken provided");
             }
 
             //Reset password with user, token and new password
-            await _userService.ResetPassword(user, model.Token, model.NewPassword);
+            await _userService.ResetPassword(Guid.Parse(userId), newPassword);
 
             return Ok();
         }
 
         public class ResetPasswordModel
         {
-            public string? Email { get; set; }
-            public string? Token { get; set; }
             public string? NewPassword { get; set; }
         }
 

@@ -2,8 +2,8 @@
 using OFOS.Domain.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
 using System.Text;
 
 namespace NotificationService.Core
@@ -20,7 +20,57 @@ namespace NotificationService.Core
             _rabbitChannel = _rabbitConnection.CreateModel();
             _notificationRepository = notificationRepository;
 
-            RegisterMessageConsumers();
+        }
+
+        public async Task StartAsync()
+        {
+            //Register Queue
+            _rabbitChannel.QueueDeclare(queue: "email-queue",
+                         durable: false,
+                         exclusive: false,
+                         autoDelete: false,
+                         arguments: null);
+
+            string message = "Hello RabbitMQ!";
+            var body = Encoding.UTF8.GetBytes(message);
+
+            _rabbitChannel.BasicPublish(exchange: "",
+                                 routingKey: "email-queue",
+                                 basicProperties: null,
+                                 body: body);
+
+            // Register the message consumer
+            var consumer = new EventingBasicConsumer(_rabbitChannel);
+            consumer.Received += HandleIncomingMessage;
+            _rabbitChannel.BasicConsume(queue: "email-queue", autoAck: false, consumer: consumer);
+
+            // Wait for the connection to be established
+            while (!_rabbitConnection.IsOpen)
+            {
+                await Task.Delay(1000);
+            }
+        }
+
+
+        private void HandleIncomingMessage(object sender, BasicDeliverEventArgs e)
+        {
+            // Get the message body and deserialize it
+            var body = e.Body.ToArray();
+            var message = JsonConvert.DeserializeObject<EmailMessage>(Encoding.UTF8.GetString(body));
+
+            // Process the message
+            var notification = new Notification(message.Body, "Email", "Received");
+            _notificationRepository.CreateAsync(notification);
+
+            try
+            {
+                SendEmailMessage(message);
+                _rabbitChannel.BasicAck(e.DeliveryTag, false);
+            }
+            catch (Exception ex)
+            {
+                _rabbitChannel.BasicReject(e.DeliveryTag, true);
+            }
         }
 
         public void ConsumeEmailMessage(string emailMessage)
@@ -55,33 +105,6 @@ namespace NotificationService.Core
 
         }
 
-        private void RegisterMessageConsumers()
-        {
-            var consumer = new EventingBasicConsumer(_rabbitChannel);
-            consumer.Received += (model, ea) =>
-            {
-                try
-                {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-
-                    ConsumeEmailMessage(message);
-
-                    // Acknowledge the message to remove it from the queue
-                    _rabbitChannel.BasicAck(ea.DeliveryTag, false);
-                }
-                catch (Exception ex)
-                {
-                    // Handle any exceptions that occur while processing the message
-                    Console.WriteLine(ex.ToString());
-
-                    // Reject the message to put it back into the queue (optional)
-                    _rabbitChannel.BasicReject(ea.DeliveryTag, true);
-                }
-            };
-
-            _rabbitChannel.BasicConsume(queue: "email-queue", autoAck: false, consumer: consumer);
-        }
 
         public void Dispose()
         {

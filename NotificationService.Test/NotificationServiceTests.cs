@@ -1,10 +1,7 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NotificationService.Core;
 using OFOS.Domain.Models;
 using RabbitMQ.Client;
-using System;
 using Service = NotificationService.Core.NotificationService;
 
 namespace NotificationService.Test
@@ -27,7 +24,7 @@ namespace NotificationService.Test
             _mockConnection.Setup(c => c.CreateModel())
                            .Returns(_mockChannel.Object);
 
-            _notificationService = new Service(_notificationRepositoryMock.Object,_mockConnection.Object);
+            _notificationService = new Service(_notificationRepositoryMock.Object, _mockConnection.Object);
         }
 
         [TestMethod]

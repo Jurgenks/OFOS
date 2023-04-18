@@ -1,8 +1,4 @@
-using Jose;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using System.Text;
@@ -20,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("UserDb");
-builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer(connectionString, b => b.MigrationsAssembly("UserService.Data"))); ;
+builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer(connectionString, b => b.MigrationsAssembly("UserService.Data")));
 
 
 builder.Services.AddAuthentication(options =>

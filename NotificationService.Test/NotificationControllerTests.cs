@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NotificationService.Core;
 using NotificationService.Controllers;
-using System.Threading.Tasks;
+using NotificationService.Core;
 using OFOS.Domain.Models;
 
 namespace NotificationService.Tests

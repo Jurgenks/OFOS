@@ -163,7 +163,7 @@ namespace UserService.Test
             ForgotPasswordModel model = null;
 
             // Act
-            var result = await _controller.ForgotPassword(model);
+            var result = await _controller.ForgotPassword(null);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -176,7 +176,7 @@ namespace UserService.Test
             var model = new ForgotPasswordModel { Email = null };
 
             // Act
-            var result = await _controller.ForgotPassword(model);
+            var result = await _controller.ForgotPassword(null);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -190,7 +190,7 @@ namespace UserService.Test
             _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync((User)null);
 
             // Act
-            var result = await _controller.ForgotPassword(model);
+            var result = await _controller.ForgotPassword(model.Email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -205,7 +205,7 @@ namespace UserService.Test
             _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync(user);
 
             // Act
-            var result = await _controller.ForgotPassword(model);
+            var result = await _controller.ForgotPassword(model.Email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -221,7 +221,7 @@ namespace UserService.Test
             _mockUserService.Setup(u => u.GetUserByEmail(email)).ReturnsAsync(user);
 
             // Act
-            var result = await _controller.ForgotPassword(model);
+            var result = await _controller.ForgotPassword(model.Email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -235,7 +235,7 @@ namespace UserService.Test
             ResetPasswordModel? model = null;
 
             // Act
-            var result = await _controller.ResetPassword(model);
+            var result = await _controller.ResetPassword(null);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -245,10 +245,10 @@ namespace UserService.Test
         public async Task ResetPassword_ReturnsBadRequest_WhenEmailIsNullOrEmpty()
         {
             // Arrange
-            var model = new ResetPasswordModel { Email = null, Token = "test-token", NewPassword = "new-password" };
+            var model = new ResetPasswordModel { NewPassword = "new-password" };
 
             // Act
-            var result = await _controller.ResetPassword(model);
+            var result = await _controller.ResetPassword(model.NewPassword);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -258,10 +258,10 @@ namespace UserService.Test
         public async Task ResetPassword_ReturnsBadRequest_WhenTokenIsNullOrEmpty()
         {
             // Arrange
-            var model = new ResetPasswordModel { Email = "test@example.com", Token = null, NewPassword = "new-password" };
+            var model = new ResetPasswordModel { NewPassword = "new-password" };
 
             // Act
-            var result = await _controller.ResetPassword(model);
+            var result = await _controller.ResetPassword(model.NewPassword);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));

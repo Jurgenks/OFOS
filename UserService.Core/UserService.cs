@@ -79,39 +79,34 @@ namespace UserService.Core
             {
                 var token = GenerateJwtToken(user);
 
-                user.AuthenticationToken = token;
-
-                await UpdateUser(user);
-
                 return token;
             }
 
             return null;
         }
 
-        public async Task ResetPassword(User user, string token, string newPassword)
+        public async Task ResetPassword(Guid userId, string newPassword)
         {
-            var originalUser = GetUser(user.Id).Result;
+            var user = GetUser(userId).Result;
 
-            if (originalUser != null)
+            if (user != null)
             {
-                originalUser.Password = newPassword;
+                user.Password = newPassword;
 
-                await UpdateUser(originalUser);
+                await UpdateUser(user);
             }
         }
 
-        public async Task SendResetToken(User user)
+        public void SendResetToken(User user)
         {
             // Generate password reset token
-            var token = GenerateJwtToken(user);
+            var token = GenerateResetJwtToken(user);
 
-            //Update the user with the new retrievalToken
-            user.RetrievalToken = token;
-            await UpdateUser(user);
+            // Create password reset link
+            var resetLink = $"{_configuration["AppSettings:BaseUrl"]}/ofos/reset-password/{user.Id}/{token}";
 
             // Create email message
-            var emailMessage = new EmailMessage(user.Email, "Password reset", $"Click this link to reset your password: {"[RESETLINK]"}");
+            var emailMessage = new EmailMessage(user.Email, "Password reset", $"Click this link to reset your password: {resetLink}");
 
             // Serialize email message as message body
             var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
@@ -131,17 +126,39 @@ namespace UserService.Core
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-            new Claim(ClaimTypes.Name, $"{user.FirstName[..1]}{"."}{user.LastName}"),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        }),
+                    new Claim(ClaimTypes.Name, $"{user.FirstName[..1]}{"."}{user.LastName}"),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Audience = _configuration["JwtSettings:Audience"]
+                Audience = _configuration["JwtSettings:Audience"],
+                Issuer = _configuration["JwtSettings:Issuer"]
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        private string GenerateResetJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim("ResetToken", Guid.NewGuid().ToString()) // Add a ResetToken claim to the JWT
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(15), // Set expiration time to 15 minutes
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Audience = _configuration["JwtSettings:Audience"],
+                Issuer = _configuration["JwtSettings:Issuer"]
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
 
         private static string EncryptPassword(string password)
         {

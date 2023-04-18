@@ -6,5 +6,6 @@ namespace NotificationService.Core
     {
         void ConsumeEmailMessage(string emailMessage);
         void SendEmailMessage(EmailMessage mail);
+        Task StartAsync();
     }
 }
