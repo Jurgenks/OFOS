@@ -23,13 +23,19 @@ namespace OrderService.Core
         /// Gets an order by its ID
         public async Task<Order?> GetOrderAsync(Guid orderId)
         {
-            return await Task.FromResult(_dbContext.Orders.FirstOrDefault(i => i.Id.Equals(orderId)));
+            return await Task.FromResult(_dbContext.Orders.Include(i => i.Products).FirstOrDefault(i => i.Id.Equals(orderId)));
+        }
+
+        /// Gets an order by its OrderNumber
+        public async Task<Order?> GetOrderByOrderNumberAsync(string orderNumber)
+        {
+            return await Task.FromResult(_dbContext.Orders.Include(i => i.Products).FirstOrDefault(i => i.OrderNumber.Equals(orderNumber)));
         }
 
         /// Gets all orders for a given restaurant
         public async Task<List<Order>?> GetOrdersForRestaurantAsync(Guid restaurantId)
         {
-            var orders = _dbContext.Orders.Where(i => i.RestaurantId.Equals(restaurantId));
+            var orders = _dbContext.Orders.Include(i => i.Products).Where(i => i.RestaurantId.Equals(restaurantId));
 
             if (orders.Any())
             {
@@ -44,7 +50,7 @@ namespace OrderService.Core
         /// Gets all orders for a given user
         public async Task<List<Order>?> GetOrdersForUserAsync(Guid userId)
         {
-            var orders = _dbContext.Orders.Where(i => i.UserId.Equals(userId));
+            var orders = _dbContext.Orders.Include(i => i.Products).Where(i => i.UserId.Equals(userId));
 
             if (orders.Any())
             {

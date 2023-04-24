@@ -11,7 +11,7 @@ namespace OrderService.Core
             _orderRepository = orderRepository;
         }
 
-        public async Task CreateOrderAsync(Guid userId, Guid restaurantId, List<Product> products)
+        public async Task<string> CreateOrderAsync(Guid userId, Guid restaurantId, List<Product> products)
         {
             // Calculate total price based on the products
             var totalPrice = 0m;
@@ -27,11 +27,19 @@ namespace OrderService.Core
 
             // Save order to repository
             await _orderRepository.CreateOrderAsync(order);
+
+            // Return OrderNumber
+            return orderNumber;
         }
 
         public async Task<Order?> GetOrderAsync(Guid orderId)
         {
             return await _orderRepository.GetOrderAsync(orderId);
+        }
+
+        public async Task<Order?> GetOrderByOrderNumberAsync(string orderNumber)
+        {
+            return await _orderRepository.GetOrderByOrderNumberAsync(orderNumber);
         }
 
         public async Task<List<Order>?> GetOrdersForUserAsync(Guid userId)
