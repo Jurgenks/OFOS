@@ -76,7 +76,7 @@ namespace UserService.Test
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _userService.UpdateUser(user);
+            await _userService.UpdateUser(user.Id,user);
 
             // Assert
             _userRepositoryMock.Verify(x => x.UpdateAsync(user), Times.Once);

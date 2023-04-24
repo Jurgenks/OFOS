@@ -41,19 +41,19 @@ namespace UserService.Core
             return await _userRepository.GetByIdAsync(id);
         }
 
-        public async Task UpdateUser(User user)
+        public async Task UpdateUser(Guid userId, User user)
         {
             // Retrieve the original user from the database
-            var originalUser = await _userRepository.GetByIdAsync(user.Id);
+            var originalUser = await _userRepository.GetByIdAsync(userId);
 
             // Update the user's properties
             originalUser.FirstName = user.FirstName;
             originalUser.LastName = user.LastName;
-            originalUser.Email = user.Email;
             originalUser.Address = user.Address;
-            originalUser.RetrievalToken = user.RetrievalToken;
-            originalUser.AuthenticationToken = user.AuthenticationToken;
-
+            originalUser.City = user.City;
+            originalUser.PostalCode = user.PostalCode;
+            originalUser.Country = user.Country;
+            originalUser.Region = user.Region;
             // Encrypt the user's password before saving to the database
             originalUser.Password = EncryptPassword(user.Password);
 
@@ -93,7 +93,7 @@ namespace UserService.Core
             {
                 user.Password = newPassword;
 
-                await UpdateUser(user);
+                await UpdateUser(userId, user);
             }
         }
 

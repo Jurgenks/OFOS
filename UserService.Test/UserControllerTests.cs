@@ -109,11 +109,11 @@ namespace UserService.Test
             };
 
             // Act
-            var result = await _controller.UpdateUser(updatedUser.Id, updatedUser);
+            var result = await _controller.UpdateUser(updatedUser);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            _mockUserService.Verify(x => x.UpdateUser(updatedUser), Times.Once);
+            _mockUserService.Verify(x => x.UpdateUser(updatedUser.Id, updatedUser), Times.Once);
         }
 
         [TestMethod]
@@ -140,10 +140,10 @@ namespace UserService.Test
             };
 
             // Act
-            var result = await _controller.UpdateUser(userId, updatedUser);
+            var result = await _controller.UpdateUser(updatedUser);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            Assert.IsInstanceOfType(result, typeof(ForbidResult));
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace UserService.Test
             var result = await _controller.Authenticate(user);
 
             // Assert
-            var okResult = result.Result as UnauthorizedResult;
+            var okResult = result as UnauthorizedResult;
             Assert.IsNotNull(okResult);
         }
 
@@ -247,7 +247,7 @@ namespace UserService.Test
             var result = await _controller.Authenticate(expectedUser);
 
             // Assert
-            var okResult = result.Result as OkObjectResult;
+            var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.IsNotNull(okResult.Value);
             Assert.AreEqual(okResult.Value, jwtToken);
