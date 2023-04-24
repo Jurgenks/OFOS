@@ -1,22 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using OFOS.Domain.Models;
 using OrderService.Controllers;
 using OrderService.Core;
+using System.Security.Claims;
 
 namespace OrderService.Test
 {
     [TestClass]
-    public class OrderServiceControllerTests
+    public class OrderControllerTests
     {
         private Mock<IOrderService> _mockOrderService;
-        private OrderServiceController _controller;
+        private OrderController _controller;
 
         [TestInitialize]
         public void Initialize()
         {
             _mockOrderService = new Mock<IOrderService>();
-            _controller = new OrderServiceController(_mockOrderService.Object);
+            _controller = new OrderController(_mockOrderService.Object);
         }
 
         [TestMethod]
@@ -31,8 +33,26 @@ namespace OrderService.Test
                 new Product("Product 2","Text", 20m,200)
             };
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
+            var orderRequest = new OrderController.OrderRequest() { RestaurantId = restaurantId, Products = products };
+
             // Act
-            var result = await _controller.CreateOrderAsync(userId, restaurantId, products);
+            var result = await _controller.CreateOrderAsync(orderRequest);
 
             // Assert
             Assert.IsNotNull(result);
