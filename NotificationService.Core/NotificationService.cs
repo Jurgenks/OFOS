@@ -31,14 +31,6 @@ namespace NotificationService.Core
                          autoDelete: false,
                          arguments: null);
 
-            string message = "Hello RabbitMQ!";
-            var body = Encoding.UTF8.GetBytes(message);
-
-            _rabbitChannel.BasicPublish(exchange: "",
-                                 routingKey: "email-queue",
-                                 basicProperties: null,
-                                 body: body);
-
             // Register the message consumer
             var consumer = new EventingBasicConsumer(_rabbitChannel);
             consumer.Received += HandleIncomingMessage;

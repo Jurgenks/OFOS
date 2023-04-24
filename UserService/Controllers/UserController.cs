@@ -63,6 +63,10 @@ namespace UserService.Controllers
             // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            //Check if userId exist
+            if (userId == null)
+                return BadRequest();
+
             // Check if the user making the request is the same as the user whose data is being retrieved
             if (userId != id.ToString())
                 return Forbid();
@@ -147,17 +151,20 @@ namespace UserService.Controllers
             }
 
             // Get the user id from the JWT
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (userId == null)
+                //Reset password with user, token and new password
+                await _userService.ResetPassword(Guid.Parse(userId), newPassword);
+
+                return Ok();
+            }
+            catch
             {
                 return BadRequest("No ResetToken provided");
             }
 
-            //Reset password with user, token and new password
-            await _userService.ResetPassword(Guid.Parse(userId), newPassword);
-
-            return Ok();
         }
 
         public class ResetPasswordModel

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using OFOS.Domain.Models;
+using System.Security.Claims;
 using UserService.Controllers;
 using UserService.Core;
 using static UserService.Controllers.UserController;
@@ -27,6 +29,22 @@ namespace UserService.Test
             var expectedUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
             _mockUserService.Setup(x => x.GetUser(expectedUser.Id)).ReturnsAsync(expectedUser);
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, expectedUser.Id.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             var result = await _controller.GetUser(expectedUser.Id);
 
@@ -44,6 +62,22 @@ namespace UserService.Test
             // Arrange
             var userId = Guid.NewGuid();
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             var result = await _controller.GetUser(userId);
 
@@ -57,6 +91,23 @@ namespace UserService.Test
         {
             // Arrange
             var updatedUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, updatedUser.Id.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             var result = await _controller.UpdateUser(updatedUser.Id, updatedUser);
 
@@ -72,6 +123,22 @@ namespace UserService.Test
             var userId = Guid.NewGuid();
             var updatedUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             var result = await _controller.UpdateUser(userId, updatedUser);
 
@@ -85,6 +152,22 @@ namespace UserService.Test
             // Arrange
             var userId = Guid.NewGuid();
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };         
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             var result = await _controller.DeleteUser(userId);
 
@@ -92,6 +175,7 @@ namespace UserService.Test
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockUserService.Verify(x => x.DeleteUser(userId), Times.Once);
         }
+
 
         [TestMethod]
         public async Task CreateUser_ReturnsOk_WhenUserCreated()
@@ -146,6 +230,19 @@ namespace UserService.Test
             var expectedUser = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
             _mockUserService.Setup(x => x.Authenticate(expectedUser.Email, expectedUser.Password)).ReturnsAsync(jwtToken);
 
+            // Create a new HttpContext object with a mock response object
+            var httpContext = new DefaultHttpContext();
+            var response = new Mock<HttpResponse>();
+            httpContext.Response.StatusCode = 200;
+            response.SetupProperty(x => x.StatusCode);
+            httpContext.Response.Body = new MemoryStream();
+            response.SetupProperty(x => x.Body);
+            httpContext.Response.Cookies.Append("jwt", jwtToken);
+            response.Setup(x => x.Cookies).Returns(httpContext.Response.Cookies);
+
+            // Set the HttpContext of the controller to the mock HttpContext
+            _controller.ControllerContext.HttpContext = httpContext;
+
             // Act
             var result = await _controller.Authenticate(expectedUser);
 
@@ -155,6 +252,7 @@ namespace UserService.Test
             Assert.IsNotNull(okResult.Value);
             Assert.AreEqual(okResult.Value, jwtToken);
         }
+
 
         [TestMethod]
         public async Task ForgotPassword_ReturnsBadRequest_WhenModelIsNull()
@@ -245,10 +343,25 @@ namespace UserService.Test
         public async Task ResetPassword_ReturnsBadRequest_WhenEmailIsNullOrEmpty()
         {
             // Arrange
-            var model = new ResetPasswordModel { NewPassword = "new-password" };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext
+            {
+                User = principal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
 
             // Act
-            var result = await _controller.ResetPassword(model.NewPassword);
+            var result = await _controller.ResetPassword(null);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -259,6 +372,7 @@ namespace UserService.Test
         {
             // Arrange
             var model = new ResetPasswordModel { NewPassword = "new-password" };
+
 
             // Act
             var result = await _controller.ResetPassword(model.NewPassword);
