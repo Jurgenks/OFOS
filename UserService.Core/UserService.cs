@@ -33,6 +33,23 @@ namespace UserService.Core
                 user.Password = EncryptPassword(user.Password);
 
                 await _userRepository.CreateAsync(user);
+
+                // Create email message
+                var emailMessage = new EmailMessage
+                {
+                    To = user.Email,
+                    Subject = "Thank You for Joining OFOS!",
+                    Body = "Dear " + user.FirstName + ",\r\n\r\nI wanted to take a moment to thank you for creating an account on the OFOS platform. We're excited to have you join our community of food enthusiasts!\r\n\r\nWith your OFOS account, you'll be able to explore new recipes, connect with other foodies, and share your own culinary creations. Whether you're a seasoned chef or a newbie in the kitchen, we're confident you'll find something to love on our platform.\r\n\r\nIf you have any questions or feedback as you get started on OFOS, please don't hesitate to reach out to our support team. We're here to help!\r\n\r\nThanks again for joining OFOS. We can't wait to see what delicious dishes you'll whip up next!\r\n\r\nBest regards,\r\nTeam OFOS"
+                };
+
+                // Serialize email message as message body
+                var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
+
+                // Publish message to RabbitMQ 
+                _rabbitChannel.BasicPublish(exchange: "",
+                                      routingKey: "email-queue",
+                                      basicProperties: null,
+                                      body: messageBody);
             }
         }
 
