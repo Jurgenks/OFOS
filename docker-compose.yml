@@ -72,6 +72,11 @@ services:
       - order-db
     environment:
       ConnectionStrings__OrderDb: "Server=order-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+      MicroServices__UserService: "http://user-service"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "rabbitmquser"
+      RabbitMq__Password: "rabbitmqpassword"
 
   notification-service:
     build:
