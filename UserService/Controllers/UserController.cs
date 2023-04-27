@@ -20,8 +20,8 @@ namespace UserService.Controllers
         }
 
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User?>> GetUser(Guid id)
+        [HttpGet("id")]
+        public async Task<ActionResult<User?>> GetUser([FromQuery] Guid id)
         {
             // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -38,34 +38,43 @@ namespace UserService.Controllers
             return Ok(user);
         }
 
+        [HttpGet("email")]
+        public async Task<ActionResult<User?>> GetUserByEmail([FromQuery] string email)
+        {
+            // Get the user id from the JWT
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] User user)
+            if(userId == null) return BadRequest("No authentication is found.");
+
+            var user = await _userService.GetUserByEmail(email);
+
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
+        }
+
+
+        [HttpPost("update")]
+        public async Task<IActionResult> UpdateUser([FromBody] User user)
         {
             // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // Check if the user making the request is the same as the user whose data is being retrieved
-            if (userId != id.ToString())
-                return Forbid();
+            if (userId != user.Id.ToString())
+                return Forbid(); 
 
-            if (id != user.Id)
-                return BadRequest();
-
-            await _userService.UpdateUser(user);
+            await _userService.UpdateUser(Guid.Parse(userId), user);
 
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteUser([FromQuery] Guid id)
         {
             // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            //Check if userId exist
-            if (userId == null)
-                return BadRequest();
 
             // Check if the user making the request is the same as the user whose data is being retrieved
             if (userId != id.ToString())
@@ -99,7 +108,7 @@ namespace UserService.Controllers
 
         [HttpPost("authenticate")]
         [AllowAnonymous]
-        public async Task<ActionResult<string?>> Authenticate([FromBody] User model)
+        public async Task<IActionResult> Authenticate([FromBody] User model)
         {
             var token = await _userService.Authenticate(model.Email, model.Password);
 
