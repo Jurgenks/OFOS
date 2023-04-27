@@ -17,7 +17,7 @@ jobs:
       run: docker-compose up -d
 
     - name: Wait for environment
-      run: docker-compose ps && sleep 60
+      run: docker-compose ps && sleep 120
 
     - name: Install Postman CLI
       run: |
