@@ -1,18 +1,34 @@
-﻿using OFOS.Domain.Models;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using OFOS.Domain.Models;
+using RabbitMQ.Client;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text;
 
 namespace OrderService.Core
 {
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IConfiguration _configuration;
+        private readonly IConnection _rabbitConnection;
+        private readonly IModel _rabbitChannel;
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IOrderRepository orderRepository, IConfiguration configuration, IConnection rabbitConnection)
         {
             _orderRepository = orderRepository;
+            _configuration = configuration;
+            _rabbitConnection = rabbitConnection;
+            _rabbitChannel = _rabbitConnection.CreateModel();
         }
 
-        public async Task<string> CreateOrderAsync(Guid userId, Guid restaurantId, List<Product> products)
+        public async Task<string> CreateOrderAsync(ClaimsPrincipal user, Guid restaurantId, List<Product> products)
         {
+            var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+            var userName = user.FindFirst(ClaimTypes.Name)?.Value;
+
             // Calculate total price based on the products
             var totalPrice = 0m;
             foreach (var product in products)
@@ -27,6 +43,23 @@ namespace OrderService.Core
 
             // Save order to repository
             await _orderRepository.CreateOrderAsync(order);
+
+            // Create email message
+            var emailMessage = new EmailMessage
+            {
+                To = userEmail,
+                Subject = "Order: " + orderNumber + " is placed",
+                Body = "Dear " + userName + ",\r\n\r\nYour order has been placed\r\n\r\nBest regards,\r\nTeam OFOS"
+            };
+
+            // Serialize email message as message body
+            var messageBody = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailMessage));
+
+            // Publish message to RabbitMQ 
+            _rabbitChannel.BasicPublish(exchange: "",
+                                  routingKey: "email-queue",
+                                  basicProperties: null,
+                                  body: messageBody);
 
             // Return OrderNumber
             return orderNumber;

@@ -55,12 +55,16 @@ namespace OrderService.Controllers
                     return BadRequest("No restaurant specified.");
                 }
 
-                // Retrieve the user ID from the JWT token
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                //Create the order and retrieve the OrderNumber
+                var orderNumber = await _orderService.CreateOrderAsync(User, restaurantId, products);
 
-                var orderNumber = await _orderService.CreateOrderAsync(userId, restaurantId, products);
+                if(orderNumber == null)
+                {
+                    return StatusCode(500,"Failed to create order");
+                }
 
-                return Ok("Order: " + orderNumber + " is placed.");
+
+                return Ok(new { orderNumber });
             }
             catch (Exception ex)
             {
@@ -70,7 +74,7 @@ namespace OrderService.Controllers
 
 
         [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetOrderAsync(Guid orderId)
+        public async Task<IActionResult> GetOrderAsync([FromQuery] Guid orderId)
         {
             try
             {
@@ -87,8 +91,8 @@ namespace OrderService.Controllers
             }
         }
 
-        [HttpGet("ordernumber/{orderNumber}")]
-        public async Task<IActionResult> GetOrderByOrderNumberAsync(string orderNumber)
+        [HttpGet("order")]
+        public async Task<IActionResult> GetOrderByOrderNumberAsync([FromQuery] string orderNumber)
         {
             try
             {
@@ -105,8 +109,8 @@ namespace OrderService.Controllers
             }
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetOrdersForUserAsync(Guid userId)
+        [HttpGet("user")]
+        public async Task<IActionResult> GetOrdersForUserAsync([FromQuery] Guid userId)
         {
             try
             {
@@ -123,8 +127,8 @@ namespace OrderService.Controllers
             }
         }
 
-        [HttpGet("restaurant/{restaurantId}")]
-        public async Task<IActionResult> GetOrdersForRestaurantAsync(Guid restaurantId)
+        [HttpGet("restaurant")]
+        public async Task<IActionResult> GetOrdersForRestaurantAsync([FromQuery] Guid restaurantId)
         {
             try
             {

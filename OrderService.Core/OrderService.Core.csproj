@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OFOS.Domain\OFOS.Domain.csproj" />
     <ProjectReference Include="..\OrderService.Data\OrderService.Data.csproj" />
   </ItemGroup>

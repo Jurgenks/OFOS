@@ -1,6 +1,9 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Configuration;
+using Moq;
 using OFOS.Domain.Models;
 using OrderService.Core;
+using RabbitMQ.Client;
+using System.Security.Claims;
 using Service = OrderService.Core.OrderService;
 
 namespace OrderService.Test
@@ -9,20 +12,34 @@ namespace OrderService.Test
     public class OrderServiceTests
     {
         private Mock<IOrderRepository>? _mockRepository;
+        private Mock<IConfiguration> _configurationMock;
+        private Mock<IConnection> _mockConnection;
+        private Mock<IModel> _mockChannel;
         private Service? _orderService;
 
         [TestInitialize]
         public void Setup()
         {
             _mockRepository = new Mock<IOrderRepository>();
-            _orderService = new Service(_mockRepository.Object);
+            _configurationMock = new Mock<IConfiguration>();
+            _mockConnection = new Mock<IConnection>();
+            _mockChannel = new Mock<IModel>();
+            _mockConnection.Setup(c => c.CreateModel())
+                           .Returns(_mockChannel.Object);
+            _orderService = new Service(_mockRepository.Object, _configurationMock.Object, _mockConnection.Object);
         }
 
         [TestMethod]
         public async Task CreateOrderAsync_ShouldCreateNewOrder()
         {
             // Arrange
-            var userId = Guid.NewGuid();
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Name, "Test"),
+                new Claim(ClaimTypes.Email, "test@example.com")
+            }));
+
             var restaurantId = Guid.NewGuid();
             var products = new List<Product>
             {
@@ -32,7 +49,7 @@ namespace OrderService.Test
             };
 
             // Act
-            await _orderService.CreateOrderAsync(userId, restaurantId, products);
+            await _orderService.CreateOrderAsync(user, restaurantId, products);
 
             // Assert
             _mockRepository.Verify(r => r.CreateOrderAsync(It.IsAny<Order>()), Times.Once);

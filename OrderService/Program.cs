@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OrderService.Core;
 using OrderService.Data;
+using RabbitMQ.Client;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,20 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+});
+
+//RabbitMQ connection
+builder.Services.AddSingleton(provider =>
+{
+    var config = provider.GetService<IConfiguration>();
+    var factory = new ConnectionFactory
+    {
+        HostName = builder.Configuration.GetSection("RabbitMQ:Host").Value,
+        Port = Convert.ToInt32(builder.Configuration.GetSection("RabbitMQ:Port").Value),
+        UserName = builder.Configuration.GetSection("RabbitMQ:UserName").Value,
+        Password = builder.Configuration.GetSection("RabbitMQ:Password").Value
+    };
+    return factory.CreateConnection();
 });
 
 
