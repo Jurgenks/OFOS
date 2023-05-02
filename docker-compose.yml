@@ -15,6 +15,61 @@ services:
       - order-service
       - notification-service
 
+  user-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - user-db-data:/var/opt/mssql 
+    ports:
+      - "1434:1433"
+
+  payment-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - payment-db-data:/var/opt/mssql 
+    ports:
+      - "1435:1433"
+
+  order-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - order-db-data:/var/opt/mssql 
+    ports:
+      - "1436:1433"
+
+  notification-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - notification-db-data:/var/opt/mssql 
+    ports:
+      - "1437:1433"
+      
+  restaurant-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - restaurant-db-data:/var/opt/mssql 
+    ports:
+      - "1433:1433"
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -94,60 +149,6 @@ services:
       RabbitMq__Username: "rabbitmquser"
       RabbitMq__Password: "rabbitmqpassword"
 
-  restaurant-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: always
-    environment:
-      SA_PASSWORD: S3cur3P@ssW0rd!
-      ACCEPT_EULA: Y
-    volumes:
-      - restaurant-db-data:/var/opt/mssql 
-    ports:
-      - "1433:1433"
-
-  user-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: always
-    environment:
-      SA_PASSWORD: S3cur3P@ssW0rd!
-      ACCEPT_EULA: Y
-    volumes:
-      - user-db-data:/var/opt/mssql 
-    ports:
-      - "1434:1433"
-
-  payment-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: always
-    environment:
-      SA_PASSWORD: S3cur3P@ssW0rd!
-      ACCEPT_EULA: Y
-    volumes:
-      - payment-db-data:/var/opt/mssql 
-    ports:
-      - "1435:1433"
-
-  order-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: always
-    environment:
-      SA_PASSWORD: S3cur3P@ssW0rd!
-      ACCEPT_EULA: Y
-    volumes:
-      - order-db-data:/var/opt/mssql 
-    ports:
-      - "1436:1433"
-
-  notification-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: always
-    environment:
-      SA_PASSWORD: S3cur3P@ssW0rd!
-      ACCEPT_EULA: Y
-    volumes:
-      - notification-db-data:/var/opt/mssql 
-    ports:
-      - "1437:1433"
 volumes:
   restaurant-db-data:
   user-db-data:
