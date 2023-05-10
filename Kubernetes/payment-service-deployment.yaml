@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Program Files\Kompose\kompose.exe convert
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: payment-service
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: payment-service
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Program Files\Kompose\kompose.exe convert
+        kompose.version: 1.28.0 (c4137012e)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/ofos-default: "true"
+        io.kompose.service: payment-service
+    spec:
+      containers:
+        - env:
+            - name: ConnectionStrings__PaymentDb
+              value: Server=payment-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false
+          image: registry.hub.docker.com/jurgenks/payment-service:latest
+          name: payment-service
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+status: {}
