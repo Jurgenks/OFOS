@@ -10,8 +10,8 @@ metadata:
   name: notification-db
 spec:
   ports:
-    - name: "1437"
-      port: 1437
+    - name: "1433"
+      port: 1433
       targetPort: 1433
   selector:
     io.kompose.service: notification-db

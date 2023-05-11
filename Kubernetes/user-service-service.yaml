@@ -10,8 +10,8 @@ metadata:
   name: user-service
 spec:
   ports:
-    - name: "8001"
-      port: 8001
+    - name: "http"
+      port: 80
       targetPort: 80
   selector:
     io.kompose.service: user-service

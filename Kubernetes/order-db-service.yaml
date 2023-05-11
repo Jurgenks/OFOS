@@ -10,8 +10,8 @@ metadata:
   name: order-db
 spec:
   ports:
-    - name: "1436"
-      port: 1436
+    - name: "1433"
+      port: 1433
       targetPort: 1433
   selector:
     io.kompose.service: order-db

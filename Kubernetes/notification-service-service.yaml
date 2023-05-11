@@ -10,8 +10,8 @@ metadata:
   name: notification-service
 spec:
   ports:
-    - name: "8004"
-      port: 8004
+    - name: "http"
+      port: 80
       targetPort: 80
   selector:
     io.kompose.service: notification-service

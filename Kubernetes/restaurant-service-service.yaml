@@ -10,8 +10,8 @@ metadata:
   name: restaurant-service
 spec:
   ports:
-    - name: "8000"
-      port: 8000
+    - name: "http"
+      port: 80
       targetPort: 80
   selector:
     io.kompose.service: restaurant-service

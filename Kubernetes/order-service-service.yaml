@@ -10,8 +10,8 @@ metadata:
   name: order-service
 spec:
   ports:
-    - name: "8003"
-      port: 8003
+    - name: "http"
+      port: 80
       targetPort: 80
   selector:
     io.kompose.service: order-service
