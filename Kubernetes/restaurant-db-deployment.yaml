@@ -37,7 +37,7 @@ spec:
             - containerPort: 1433
           resources: {}
           volumeMounts:
-            - mountPath: /var/opt/mssql
+            - mountPath: /var/opt/data
               name: restaurant-db-data
       restartPolicy: Always
       volumes:
