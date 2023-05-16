@@ -25,6 +25,8 @@ spec:
         io.kompose.network/ofos-default: "true"
         io.kompose.service: restaurant-db
     spec:
+      securityContext:
+        runAsUser: 0
       containers:
         - env:
             - name: ACCEPT_EULA
