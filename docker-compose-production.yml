@@ -1,0 +1,147 @@
+version: '3.9'
+
+services:
+  user-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - user-db-data:/var/opt/mssql 
+    ports:
+      - "1434:1433"
+
+  payment-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - payment-db-data:/var/opt/mssql 
+    ports:
+      - "1435:1433"
+
+  order-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - order-db-data:/var/opt/mssql 
+    ports:
+      - "1436:1433"
+
+  notification-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - notification-db-data:/var/opt/mssql 
+    ports:
+      - "1437:1433"
+
+  restaurant-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      SA_PASSWORD: S3cur3P@ssW0rd!
+      ACCEPT_EULA: Y
+    volumes:
+      - restaurant-db-data:/var/opt/mssql 
+    ports:
+      - "1433:1433"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmquser
+      RABBITMQ_DEFAULT_PASS: rabbitmqpassword
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  restaurant-service:
+    image: jurgenks/restaurant-service
+    ports:
+      - "8000:80"
+    depends_on:
+      - restaurant-db
+    environment:
+      ConnectionStrings__RestaurantDb: "Server=restaurant-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+
+  user-service:
+    image: jurgenks/user-service
+    ports:
+      - "8001:80"
+    depends_on:
+      - user-db
+    environment:
+      ConnectionStrings__UserDb: "Server=user-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "rabbitmquser"
+      RabbitMq__Password: "rabbitmqpassword"
+
+  payment-service:
+    image: jurgenks/payment-service
+    ports:
+      - "8002:80"
+    depends_on:
+      - payment-db
+    environment:
+      ConnectionStrings__PaymentDb: "Server=payment-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+
+  order-service:
+    image: jurgenks/order-service
+    ports:
+      - "8003:80"
+    depends_on:
+      - order-db
+    environment:
+      ConnectionStrings__OrderDb: "Server=order-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+      MicroServices__UserService: "http://user-service"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "rabbitmquser"
+      RabbitMq__Password: "rabbitmqpassword"
+
+  notification-service:
+    image: jurgenks/notification-service
+    ports:
+      - "8004:80"
+    depends_on:
+      - notification-db
+      - rabbitmq 
+    environment:
+      ConnectionStrings__NotificationDb: "Server=notification-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: "rabbitmquser"
+      RabbitMq__Password: "rabbitmqpassword"
+      
+  api-gateway:
+    image: nginx:stable
+    container_name: api-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - restaurant-service
+      - user-service
+      - payment-service
+      - order-service
+      - notification-service
+
+volumes:
+  restaurant-db-data:
+  user-db-data:
+  notification-db-data:
+  order-db-data:
+  payment-db-data:
