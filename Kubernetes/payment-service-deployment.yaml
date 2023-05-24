@@ -28,7 +28,7 @@ spec:
         - env:
             - name: ConnectionStrings__PaymentDb
               value: Server=payment-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false
-          image: registry.hub.docker.com/jurgenks/payment-service:latest
+          image: ofosregistry.azurecr.io/payment-service
           name: payment-service
           ports:
             - containerPort: 80
