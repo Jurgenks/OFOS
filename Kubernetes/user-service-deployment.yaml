@@ -36,7 +36,7 @@ spec:
               value: "5672"
             - name: RabbitMq__Username
               value: rabbitmquser
-          image: registry.hub.docker.com/jurgenks/user-service:latest
+          image: ofosregistry.azurecr.io/user-service
           name: user-service
           ports:
             - containerPort: 80
