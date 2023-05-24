@@ -36,7 +36,7 @@ spec:
               value: "5672"
             - name: RabbitMq__Username
               value: rabbitmquser
-          image: registry.hub.docker.com/jurgenks/notification-service:latest
+          image: ofosregistry.azurecr.io/notification-service
           name: notification-service
           ports:
             - containerPort: 80
