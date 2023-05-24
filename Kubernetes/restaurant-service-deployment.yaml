@@ -28,7 +28,7 @@ spec:
         - env:
             - name: ConnectionStrings__RestaurantDb
               value: Server=restaurant-db;Database=master;User=sa;Password=S3cur3P@ssW0rd!;Encrypt=false
-          image: registry.hub.docker.com/jurgenks/restaurant-service:latest
+          image: ofosregistry.azurecr.io/restaurant-service
           name: restaurant-service
           ports:
             - containerPort: 80
