@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
-      run: dotnet restore ./OrderService.csproj
+      run: dotnet restore OFOS.sln
     - name: Build
       run: dotnet build ./OrderService.csproj --no-restore
     - name: Test
