@@ -21,8 +21,8 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
-      run: dotnet restore OFOS.sln
+      run: dotnet restore ./OrderService
     - name: Build
-      run: dotnet build ./OrderService.csproj --no-restore
+      run: dotnet build ./OrderService --no-restore
     - name: Test
-      run: dotnet test ./OrderService.Test/OrderService.Test.csproj --no-build --verbosity normal
+      run: dotnet test ./OrderService.Test --no-build --verbosity normal
