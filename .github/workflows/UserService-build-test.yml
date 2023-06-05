@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build ./UserService --no-restore
     - name: Test
-      run: dotnet test ./UserService.Test/UserService.Test.csproj
+      run: dotnet test ./UserService.Test/UserService.Test.csproj --no-build
