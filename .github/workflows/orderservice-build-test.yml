@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build ./OrderService --no-restore
     - name: Test
-      run: dotnet test ./OrderService.Test --no-build --verbosity normal
+      run: dotnet test ./OrderService.Test/OrderService.Test.csproj
