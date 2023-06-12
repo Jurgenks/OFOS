@@ -5,6 +5,7 @@ namespace OFOS.Domain.Models
     public class User
     {
         public Guid Id { get; set; }
+        public string Role { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -22,6 +23,8 @@ namespace OFOS.Domain.Models
         public User(string firstName, string lastName, string email, string? phoneNumber, string address, string city, string region, string postalCode, string country, string? password)
         {
             Id = Guid.NewGuid();
+
+            Role = "Customer";
 
             FirstName = firstName;
             LastName = lastName;
