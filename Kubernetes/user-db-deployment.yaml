@@ -9,7 +9,7 @@ metadata:
     io.kompose.service: user-db
   name: user-db
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       io.kompose.service: user-db
