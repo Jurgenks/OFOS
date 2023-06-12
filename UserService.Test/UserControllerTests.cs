@@ -215,7 +215,7 @@ namespace UserService.Test
             var user = new User("John", "Doe", "johndoe@example.com", null, "test", "test", "test", "test", "test", "password123");
 
             // Act
-            var result = await _controller.Authenticate(user);
+            var result = await _controller.Authenticate(user.Email,user.Password);
 
             // Assert
             var okResult = result as UnauthorizedResult;
@@ -244,7 +244,7 @@ namespace UserService.Test
             _controller.ControllerContext.HttpContext = httpContext;
 
             // Act
-            var result = await _controller.Authenticate(expectedUser);
+            var result = await _controller.Authenticate(expectedUser.Email,expectedUser.Password);
 
             // Assert
             var okResult = result as OkObjectResult;
@@ -255,26 +255,13 @@ namespace UserService.Test
 
 
         [TestMethod]
-        public async Task ForgotPassword_ReturnsBadRequest_WhenModelIsNull()
-        {
-            // Arrange
-            ForgotPasswordModel model = null;
-
-            // Act
-            var result = await _controller.ForgotPassword(null);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
         public async Task ForgotPassword_ReturnsBadRequest_WhenEmailIsNullOrEmpty()
         {
             // Arrange
-            var model = new ForgotPasswordModel { Email = null };
+            string email = null;
 
             // Act
-            var result = await _controller.ForgotPassword(null);
+            var result = await _controller.ForgotPassword(email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -284,11 +271,12 @@ namespace UserService.Test
         public async Task ForgotPassword_ReturnsOk_WhenUserDoesNotExist()
         {
             // Arrange
-            var model = new ForgotPasswordModel { Email = "test@example.com" };
-            _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync((User)null);
+            string email = "test@example.com";
+
+            _mockUserService.Setup(x => x.GetUserByEmail(email)).ReturnsAsync((User)null);
 
             // Act
-            var result = await _controller.ForgotPassword(model.Email);
+            var result = await _controller.ForgotPassword(email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -298,12 +286,12 @@ namespace UserService.Test
         public async Task ForgotPassword_ReturnsOk_WhenUserExists()
         {
             // Arrange
-            var model = new ForgotPasswordModel { Email = "test@example.com" };
-            var user = new User("John", "Doe", model.Email, null, "test", "test", "test", "test", "test", "password123");
-            _mockUserService.Setup(x => x.GetUserByEmail(model.Email)).ReturnsAsync(user);
+            string email = "test@example.com";
+            var user = new User("John", "Doe", email, null, "test", "test", "test", "test", "test", "password123");
+            _mockUserService.Setup(x => x.GetUserByEmail(email)).ReturnsAsync(user);
 
             // Act
-            var result = await _controller.ForgotPassword(model.Email);
+            var result = await _controller.ForgotPassword(email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -313,30 +301,15 @@ namespace UserService.Test
         public async Task ForgotPassword_WhenCalledWithValidEmail_ShouldSendPasswordResetMessageToRabbitMQ()
         {
             // Arrange
-            var email = "test@example.com";
-            var model = new ForgotPasswordModel { Email = email };
-            var user = new User("John", "Doe", model.Email, null, "test", "test", "test", "test", "test", "password123");
+            string email = "test@example.com";
+            var user = new User("John", "Doe", email, null, "test", "test", "test", "test", "test", "password123");
             _mockUserService.Setup(u => u.GetUserByEmail(email)).ReturnsAsync(user);
 
             // Act
-            var result = await _controller.ForgotPassword(model.Email);
+            var result = await _controller.ForgotPassword(email);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
-        }
-
-
-        [TestMethod]
-        public async Task ResetPassword_ReturnsBadRequest_WhenModelIsNull()
-        {
-            // Arrange
-            ResetPasswordModel? model = null;
-
-            // Act
-            var result = await _controller.ResetPassword(null);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
@@ -371,11 +344,11 @@ namespace UserService.Test
         public async Task ResetPassword_ReturnsBadRequest_WhenTokenIsNullOrEmpty()
         {
             // Arrange
-            var model = new ResetPasswordModel { NewPassword = "new-password" };
+            string newPassword = "new-password";
 
 
             // Act
-            var result = await _controller.ResetPassword(model.NewPassword);
+            var result = await _controller.ResetPassword(newPassword);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));

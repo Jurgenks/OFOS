@@ -7,7 +7,6 @@ using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace UserService.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
@@ -19,14 +18,12 @@ namespace UserService.Controllers
             _userService = userService;
         }
 
-
-        [HttpGet("id")]
-        public async Task<ActionResult<User?>> GetUser([FromQuery] Guid id)
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Customer, Employee")]
+        public async Task<ActionResult<User?>> GetUser([FromRoute] Guid id)
         {
-            // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Check if the user making the request is the same as the user whose data is being retrieved
             if (userId != id.ToString())
                 return Forbid();
 
@@ -41,42 +38,40 @@ namespace UserService.Controllers
         [HttpGet("email")]
         public async Task<ActionResult<User?>> GetUserByEmail([FromQuery] string email)
         {
-            // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if(userId == null) return BadRequest("No authentication is found.");
+            if (userId == null)
+                return BadRequest("No authentication is found.");
 
             var user = await _userService.GetUserByEmail(email);
 
             if (user == null)
                 return NotFound();
 
+            if (userId != user.Id.ToString())
+                return Forbid();
+
             return Ok(user);
         }
-
 
         [HttpPost("update")]
         public async Task<IActionResult> UpdateUser([FromBody] User user)
         {
-            // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Check if the user making the request is the same as the user whose data is being retrieved
             if (userId != user.Id.ToString())
-                return Forbid(); 
+                return Forbid();
 
             await _userService.UpdateUser(Guid.Parse(userId), user);
 
             return NoContent();
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteUser([FromQuery] Guid id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser([FromRoute] Guid id)
         {
-            // Get the user id from the JWT
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Check if the user making the request is the same as the user whose data is being retrieved
             if (userId != id.ToString())
                 return Forbid();
 
@@ -89,7 +84,8 @@ namespace UserService.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> CreateUser([FromBody] User model)
         {
-            if (model == null) return BadRequest();
+            if (model == null)
+                return BadRequest();
 
             var user = await _userService.GetUserByEmail(model.Email);
 
@@ -102,24 +98,21 @@ namespace UserService.Controllers
             {
                 return BadRequest("User: " + model.Email + " is already created");
             }
-
-
         }
 
         [HttpPost("authenticate")]
         [AllowAnonymous]
-        public async Task<IActionResult> Authenticate([FromBody] User model)
+        public async Task<IActionResult> Authenticate([FromForm] string email, [FromForm] string password)
         {
-            var token = await _userService.Authenticate(model.Email, model.Password);
+            var token = await _userService.Authenticate(email, password);
 
             if (token == null)
                 return Unauthorized();
 
-            // Create a new cookie and set the value to the JWT token
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(7), // Set the cookie expiration time
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
             };
 
             Response.Cookies.Append("jwt", token, cookieOptions);
@@ -136,16 +129,13 @@ namespace UserService.Controllers
                 return BadRequest("Please provide a valid email address");
             }
 
-            //Get User by E-mail address
             var user = await _userService.GetUserByEmail(email);
 
             if (user == null)
             {
-                // Do not reveal that the user does not exist
-                return Ok();
+                return Ok(); // Do not reveal that the user does not exist
             }
 
-            //Send ResetToken to UserService
             _userService.SendResetToken(user);
 
             return Ok();
@@ -159,12 +149,10 @@ namespace UserService.Controllers
                 return BadRequest("Please provide a new password");
             }
 
-            // Get the user id from the JWT
             try
             {
                 var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                //Reset password with user, token and new password
                 await _userService.ResetPassword(Guid.Parse(userId), newPassword);
 
                 return Ok();
@@ -173,19 +161,13 @@ namespace UserService.Controllers
             {
                 return BadRequest("No ResetToken provided");
             }
-
         }
 
-        public class ResetPasswordModel
+        [HttpGet("employee/tasks")]
+        [Authorize(Roles = "Employee")]
+        public IActionResult GetTasks()
         {
-            public string? NewPassword { get; set; }
+            return Ok("Get back to work!");
         }
-
-        public class ForgotPasswordModel
-        {
-            public string? Email { get; set; }
-        }
-
-
     }
 }
